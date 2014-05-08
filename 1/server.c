@@ -31,7 +31,7 @@ return_type add(const int nparams, arg_type* a) {
 }
 
 int main() {
-	register_procedure("addtwo", 2, add);
+	//register_procedure("addtwo", 2, add);
 
 	launch_server();
 

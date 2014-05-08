@@ -1,21 +1,22 @@
 #include "ece454rpc_types.h"
-#include <sys/types.h> 
 #include <sys/socket.h>
-#include <stdlib.h>
+#include <netdb.h>
+#include <stdio.h>
 
 void launch_server() {
-	int socket;
-	struct sockaddr_in server;
-	socklen_t len = sizeof(server);
+	int sock;
+	struct sockaddr_in sin;
+	socklen_t len = sizeof(sin);
+
 	int port_number;
 	
-	socket = socket(AF_NET, SOCKET_DGRAM, 0);
-	if (socket == 0) {
+	sock = socket(AF_INET, SOCK_DGRAM, 0);
+	if (sock == 0) {
 		perror("Socket init fails");
 	}
 	
-	if(getsockname(socket, (struct sockaddr *)&server, &len) == 0) {
-		port_number = ntohs(server.sin_port);
+	if(getsockname(socket, (struct sockaddr *)&sin, &len) == 0) {
+		port_number = ntohs(sin.sin_port);
 		printf("running on port: %d", port_number);
 	}
 }

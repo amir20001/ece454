@@ -3,6 +3,12 @@ objects := $(patsubst %.c,%.o,$(wildcard *.c))
 a.out: libstubs.a client.o server.o
 	gcc client.o server.o -L. -lstubs -o a.out
 
+server.out: libstubs.a server.o
+	gcc server.o -L. -lstubs -o server.out
+
+client.out: libstubs.a client.o
+	gcc client.o -L. -lstubs -o client.out
+
 $(objects): %.o: %.c ece454rpc_types.h
 	gcc -c $< -o $@
 
