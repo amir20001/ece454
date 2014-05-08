@@ -1,0 +1,1 @@
+make.exe": *** No rule to make target `server_stub.o', needed by `libstubs.a'.  Stop.
