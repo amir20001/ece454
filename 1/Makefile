@@ -9,5 +9,6 @@ $(objects): %.o: %.c ece454rpc_types.h
 libstubs.a: server_stub.o client_stub.o
 	ar r libstubs.a server_stub.o client_stub.o
 
+.PHONY: clean
 clean:
-	rm -rf a.out *.o core *.a
+	rm -rf *.out *.o core *.a
