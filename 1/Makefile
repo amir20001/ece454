@@ -8,11 +8,11 @@ objects := $(patsubst %.c,%.o,$(wildcard *.c))
 a.out: libstubs.a client.o server.o
 	$(CC) $(CFLAGS) client.o server.o -L. -lstubs -o a.out
 
-server.out: libstubs.a server.o
-	$(CC) $(CFLAGS) server.o -L. -lstubs -o server.out
+server: libstubs.a server.o
+	$(CC) $(CFLAGS) server.o -L. -lstubs -o server
 
-client.out: libstubs.a client.o
-	$(CC) $(CFLAGS) client.o -L. -lstubs -o client.out
+client: libstubs.a client.o
+	$(CC) $(CFLAGS) client.o -L. -lstubs -o client
 
 $(objects): %.o: %.c ece454rpc_types.h
 	$(CC) $(CFLAGS) -c $< -o $@
