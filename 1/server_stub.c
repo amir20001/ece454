@@ -9,7 +9,8 @@
 
 void launch_server() {
 	int sock;
-	struct sockaddr_in server;
+	struct sockaddr_in server, remaddr; //our address, remote address
+	socklen_t addrlen = sizeof(remaddr);
 	char buf[512];
 	int rc;
 	
@@ -29,10 +30,12 @@ void launch_server() {
 	
 	
 	for (;;) {
-		rc = recv (sock, buf, sizeof(buf), 0);
+		//rc = recv (sock, buf, sizeof(buf), 0);
+		rc = recvfrom(sock, buf, sizeof(buf), 0, (struct sockaddr *)&remaddr, &addrlen);
 		if (rc > 0) {
 			buf[rc]= 0;
 			printf("Received: %s\n", buf);
+			sendto(sock, buf, strlen(buf), 0, (struct sockaddr *)&remaddr, addrlen);
 		}
 	}
 }
