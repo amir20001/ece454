@@ -26,39 +26,38 @@
  * returns int -- negative return means an error occurred, else the call succeeded.
  */
 int mybind(int sockfd, struct sockaddr_in *addr) {
-    if(sockfd < 1) {
-	fprintf(stderr, "mybind(): sockfd has invalid value %d\n", sockfd);
-	return -1;
-    }
-
-    if(addr == NULL) {
-	fprintf(stderr, "mybind(): addr is NULL\n");
-	return -1;
-    }
-
-    if(addr->sin_port != 0) {
-	fprintf(stderr, "mybind(): addr->sin_port is non-zero. Perhaps you want bind() instead?\n");
-	return -1;
-    }
-
-    unsigned short p;
-    for(p = PORT_RANGE_LO; p <= PORT_RANGE_HI; p++) {
-	addr->sin_port = ntohs(p);
-	int b = bind(sockfd, (const struct sockaddr *)addr, sizeof(struct sockaddr_in));
-	if(b < 0) {
-	    continue;
+	if(sockfd < 1) {
+		fprintf(stderr, "mybind(): sockfd has invalid value %d\n", sockfd);
+		return -1;
 	}
-	else {
-	    break;
+
+	if(addr == NULL) {
+		fprintf(stderr, "mybind(): addr is NULL\n");
+		return -1;
 	}
-    }
 
-    if(p > PORT_RANGE_HI) {
-	fprintf(stderr, "mybind(): all bind() attempts failed. No port available...?\n");
-	return -1;
-    }
+	if(addr->sin_port != 0) {
+		fprintf(stderr, "mybind(): addr->sin_port is non-zero. Perhaps you want bind() instead?\n");
+		return -1;
+	}
 
-    /* Note: upon successful return, addr->sin_port contains, in network byte order, the
-     * port to which we successfully bound. */
-    return 0;
+	unsigned short p;
+	for(p = PORT_RANGE_LO; p <= PORT_RANGE_HI; p++) {
+		addr->sin_port = ntohs(p);
+		int b = bind(sockfd, (const struct sockaddr *)addr, sizeof(struct sockaddr_in));
+		if(b < 0) {
+			continue;
+		} else {
+			break;
+		}
+	}
+
+	if(p > PORT_RANGE_HI) {
+		fprintf(stderr, "mybind(): all bind() attempts failed. No port available...?\n");
+		return -1;
+	}
+
+	/* Note: upon successful return, addr->sin_port contains, in network byte order, the
+	 * port to which we successfully bound. */
+	return 0;
 }

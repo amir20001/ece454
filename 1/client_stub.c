@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <string.h>
 
-#define BUF_SIZE 512
+#define BUF_SIZE 1024
 
 return_type make_remote_call(const char *servernameorip,
 								const int serverportnumber,
@@ -30,13 +30,15 @@ return_type make_remote_call(const char *servernameorip,
 	server.sin_family = AF_INET;
 	server.sin_port = htons(serverportnumber);
 	
-	sendto(sock, "addtwo", 6, 0, (struct sockaddr *) &server, sizeof(server));
+	char * func = "fds";
+	
+	sendto(sock, func, strlen(func), 0, (struct sockaddr *) &server, sizeof(server));
 	int nread;
 	
 	nread = recv (sock, buf, BUF_SIZE, 0);
 	buf[nread] = 0;
 	printf("Received: %s\n", buf);
 	
-	//close(sock);
+	close(sock);
 	return ret;
 }

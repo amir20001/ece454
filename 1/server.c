@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include "ece454rpc_types.h"
-#include "queue.h"
 
 int ret_int;
 return_type r;

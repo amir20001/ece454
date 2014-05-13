@@ -1,5 +1,7 @@
 /* ECE 454 -- S'14, types and extern declarations for Assignment 1 */
 #include <stdbool.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
 
 /* returnType */
 typedef struct {
@@ -58,6 +60,8 @@ extern return_type make_remote_call(const char *servernameorip,
 	                            const char *procedure_name,
 	                            const int nparams,
 				    ...);
+
+extern int mybind(int sockfd, struct sockaddr_in *addr);
 
 typedef struct node {
 	const char* name;

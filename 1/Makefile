@@ -1,5 +1,5 @@
 
-CC=g++
+CC=gcc
 CFLAGS=-Wall -g
 LDFLAGS=-lm
 
@@ -15,7 +15,7 @@ $(objects): %.o: %.c ece454rpc_types.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 queue.o: queue.c
-	$(CC) $(CFLAGS) queue.h -c queue.c
+	$(CC) $(CFLAGS) -c queue.c
 
 libstubs.a: server_stub.o client_stub.o mybind.o queue.o
 	ar r libstubs.a server_stub.o client_stub.o mybind.o queue.o
