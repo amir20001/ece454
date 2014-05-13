@@ -3,9 +3,11 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define PORT 9930
+
 
 void launch_server() {
 	int sock;
@@ -35,7 +37,10 @@ void launch_server() {
 		if (rc > 0) {
 			buf[rc]= 0;
 			printf("Received: %s\n", buf);
+			
 			sendto(sock, buf, strlen(buf), 0, (struct sockaddr *)&remaddr, addrlen);
+			
+			//sendto(sock, buf, strlen(buf), 0, (struct sockaddr *)&remaddr, addrlen);
 		}
 	}
 }
@@ -44,5 +49,13 @@ bool register_procedure(const char *procedure_name,
 							const int nparams,
 							fp_type fnpointer) {
 	
-	return false;
+	if (procedure_queue == NULL) {
+		printf("init que\n");
+		procedure_queue = (queue*)malloc(sizeof(queue));
+		init(procedure_queue);
+	}
+	printf("registering procedure %s\n", procedure_name);
+	enqueue(procedure_queue, procedure_name, nparams, fnpointer);
+	
+	return true;
 }

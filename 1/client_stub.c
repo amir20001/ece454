@@ -30,7 +30,7 @@ return_type make_remote_call(const char *servernameorip,
 	server.sin_family = AF_INET;
 	server.sin_port = htons(serverportnumber);
 	
-	sendto(sock, "HI", 2, 0, (struct sockaddr *) &server, sizeof(server));
+	sendto(sock, "addtwo", 6, 0, (struct sockaddr *) &server, sizeof(server));
 	int nread;
 	
 	nread = recv (sock, buf, BUF_SIZE, 0);

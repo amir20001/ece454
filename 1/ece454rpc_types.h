@@ -58,3 +58,27 @@ extern return_type make_remote_call(const char *servernameorip,
 	                            const char *procedure_name,
 	                            const int nparams,
 				    ...);
+
+typedef struct node {
+	const char* name;
+	int nparams;
+	fp_type fp;
+	struct node *next;
+} node;
+
+typedef struct queue {
+	node *front;
+	node *rear;
+} queue;
+
+void init(queue *q);
+
+int isEmpty(queue *q);
+
+void enqueue(queue *q, const char* name, int nparams, fp_type fp);
+
+void print(queue *q);
+
+void print_single(node *p);
+
+node* find(queue *q, char *name);
