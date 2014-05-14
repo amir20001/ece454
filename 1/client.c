@@ -3,7 +3,7 @@
 
 int main() {
 	int a = -10, b = 20;
-	return_type ans = make_remote_call("ecelinux3.uwaterloo.ca",
+	return_type ans = make_remote_call("localhost",
 										10000,
 										"addtwo", 2,
 										sizeof(int), (void *)(&a),
