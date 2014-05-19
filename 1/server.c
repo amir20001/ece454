@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "ece454rpc_types.h"
 
 int ret_int;
@@ -30,13 +31,33 @@ return_type add(const int nparams, arg_type* a) {
 	return r;
 }
 
+return_type concat(const int nparams, arg_type* a) {
+	if(nparams != 2) {
+		/* Error! */
+		r.return_val = NULL;
+		r.return_size = 0;
+		return r;
+	}
+
+	char* i = (char *)(a->arg_val);
+	char* j = (char *)(a->next->arg_val);
+
+	char *ret = strcat(i, j);
+	r.return_val = (void *)(&ret);
+	r.return_size = strlen(ret);
+
+	return r;
+}
+
 int main() {
-	register_procedure("addtwo", 2, add);
-	register_procedure("addthree", 2, add);
-	launch_server();
+    register_procedure("addtwo", 2, add);
+    register_procedure("addthree", 2, add);
+    register_procedure("concat", 2, concat);
 
-	/* should never get here, because
-	   launch_server(); runs forever. */
+    launch_server();
 
-	return 0;
+    /* should never get here, because
+       launch_server(); runs forever. */
+
+    return 0;
 }

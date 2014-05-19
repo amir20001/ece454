@@ -9,11 +9,13 @@
 
 queue *function_list;
 
+#define BUF_SIZE 2048
+
 void launch_server() {
     int sock;
     struct sockaddr_in server, remaddr; //our address, remote address
     socklen_t addrlen = sizeof (remaddr);
-    char buf[1024];
+    char buf[BUF_SIZE];
     int rc;
 
     sock = socket(AF_INET, SOCK_DGRAM, 0);
@@ -58,8 +60,8 @@ void launch_server() {
     }
     freeifaddrs(ifaddr);
 
-    printf("running udp server on %s:%d\n", inet_ntoa(server.sin_addr), ntohs(server.sin_port));
-    printf("running udp server on %s:%d\n", host, ntohs(server.sin_port));
+    //printf("%s %d\n", inet_ntoa(server.sin_addr), ntohs(server.sin_port));
+    printf("%s %d\n", host, ntohs(server.sin_port));
 
     for (;;) {
         //rc = recv (sock, buf, sizeof(buf), 0);
@@ -67,14 +69,67 @@ void launch_server() {
         if (rc > 0) {
             buf[rc] = 0;
             printf("Received: %s\n", buf);
+            
+            char *sep = ":";
+            char *func_name, *token;
+            int nparams;
+            arg_type *list = NULL;
+            arg_type *current = NULL;
+            arg_type *ptr = (arg_type*)malloc(sizeof(arg_type));
+            
+            func_name = strtok(buf, sep);
+            nparams = atoi(strtok(NULL, sep));
+            
+            if (nparams > 0) {
+                token = strtok(NULL, sep);
+                int size = atoi(token);
+                token = strtok(NULL, sep);
+                int a = atoi(token);
+                void *arg = &a;
+                ptr->arg_size = size;
+                ptr->arg_val = arg;
+                ptr->next = NULL;
+            }
+            list = current = ptr;
+            
+            if (nparams > 1) {
+                int i;
+                for(i = 1; i< nparams; i++) {
+                    /* While there are tokens in "string" */
+                    token = strtok(NULL, sep);
+                    int size = atoi(token);
 
-            node *n = find(function_list, buf);
+                    token = strtok(NULL, sep);
+                    int a = atoi(token);
+                    void *arg = &a;
+                    arg_type *p = (arg_type*)malloc(sizeof(arg_type));
+                    
+                    p->arg_size = size;
+                    p->arg_val = arg;
+                    p->next = NULL;
+
+                    current->next = p;
+                    current = p;
+                }
+            }
+            
+            node *n = find(function_list, func_name);
 
             if (n != NULL) {
-                printf("found\n");
-                sendto(sock, buf, strlen(buf), 0, (struct sockaddr *) &remaddr, addrlen);
+                printf("found %s with %d\n", n->name, n->nparams);
+
+                fp_type ff = n->fp;
+                return_type ret = (*ff)(nparams, list);
+
+                char b[BUF_SIZE];
+                char integer_string[32];
+                sprintf(integer_string, "%d", *(int*)(ret.return_val));
+                strcpy(b, integer_string);
+                printf("sending: %s\n", b);
+                sendto(sock, b, strlen(b), 0, (struct sockaddr *) &remaddr, addrlen);
             } else {
-                sendto(sock, "none", 4, 0, (struct sockaddr *) &remaddr, addrlen);
+                char *ret = "invalid";
+                sendto(sock, ret, strlen(ret), 0, (struct sockaddr *) &remaddr, addrlen);
             }
         }
     }
@@ -88,7 +143,7 @@ bool register_procedure(const char *procedure_name,
         function_list = (queue*) malloc(sizeof (queue));
         init(function_list);
     }
-    printf("registering procedure %s\n", procedure_name);
+    //printf("registering procedure %s\n", procedure_name);
     enqueue(function_list, procedure_name, nparams, fnpointer);
 
     return true;

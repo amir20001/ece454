@@ -22,7 +22,7 @@ typedef struct arg {
 typedef return_type (*fp_type)(const int, arg_type *);
 
 /******************************************************************/
-/* extern declarations -- you need to implement these 4 functions */
+/* extern declarations -- you need to implement these 3 functions */
 /******************************************************************/
 
 /* The following need to be implemented in the server stub */
