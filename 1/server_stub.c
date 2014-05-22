@@ -7,7 +7,27 @@
 #include <string.h>
 #include <ifaddrs.h>
 
+#define BUF_SIZE 2048
+
 queue *function_list;
+arg_type *arg_list;
+arg_type *current;
+
+void init_list() {
+    arg_list = (arg_type*)malloc(sizeof(arg_type));
+    current = arg_list;
+}
+
+void append(int size, void * param) {
+    arg_type *p = (arg_type*)malloc(sizeof(arg_type));
+
+    p->arg_size = size;
+    p->arg_val = param;
+    p->next = NULL;
+
+    current->next = p;
+    current = p;
+}
 
 void launch_server() {
     int sock;
@@ -83,8 +103,9 @@ void launch_server() {
             memcpy(func_name,buf+buf_index,func_name_size);
             buf_index+=func_name_size;
             printf("func_name: %s\n",func_name);
+            init_list();
             
-            for(i=0;i<nparams;i++){
+            for(i = 0; i < nparams; i++) {
                 size_t param_size;
                 memcpy(&param_size, buf + buf_index, sizeof (size_t));
                 buf_index += sizeof (size_t);
@@ -95,21 +116,31 @@ void launch_server() {
                 buf_index += param_size;
                 // TODO do something with this
                 
+                append(param_size, param);
             }
             
-            printf("Received: %s\n", buf);
+            printf("Received: %s\n", func_name);
 
-            node *n = find(function_list, buf);
+            node *n = find(function_list, func_name);
+            char t[BUF_SIZE];
+            return_type ret;
 
             if (n != NULL) {
-                printf("found\n");
-                sendto(sock, buf, strlen(buf), 0, (struct sockaddr *) &remaddr, addrlen);
+                printf("found %s with %d\n", n->name, n->nparams);
+                fp_type ff = n->fp;
+                ret = (*ff)(nparams, arg_list);
+
             } else {
                 printf("not found\n");
-                char *ret = "invalid";
-                sendto(sock, ret, strlen(ret), 0, (struct sockaddr *) &remaddr, addrlen);
-
+                return_type *f = (return_type*)malloc(sizeof(return_type));
+                f->return_size = 0;
+                f->return_val = (void*)NULL;
+                //memcpy(t, ret, sizeof(&ret));
+                //sendto(sock, t, strlen(t), 0, (struct sockaddr *) &remaddr, addrlen);
             }
+            printf("answer: %d, %d", ret.return_size, (ret.return_val));
+            memcpy(t, &ret, sizeof(ret));
+            sendto(sock, t, strlen(t), 0, (struct sockaddr *) &remaddr, addrlen);
         }
     }
 }

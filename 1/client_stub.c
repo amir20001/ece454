@@ -16,13 +16,12 @@ return_type make_remote_call(const char *servernameorip,
         const char *procedure_name,
         const int nparams,
         ...) {
-    return_type ret;
+
     int sock;
     struct sockaddr_in server;
     va_list listPointer;
  
     char buf[BUF_SIZE];
-    char read[BUF_SIZE];
     unsigned int buf_index = 0;
     sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock == -1) {
@@ -41,14 +40,14 @@ return_type make_remote_call(const char *servernameorip,
             }
 
         } else
-            printf("invalid name or ip");
+            printf("invalid name or ip\n");
     }
 
     //inet_pton(AF_INET, "127.0.0.1", &(server.sin_addr));
     server.sin_family = AF_INET;
     server.sin_port = htons(serverportnumber);
     
-    memcpy(buf + buf_index, &nparams, sizeof (nparams));
+    memcpy(buf, &nparams, sizeof (nparams));
     buf_index += sizeof (nparams);
     
     size_t length = strlen(procedure_name);
@@ -59,7 +58,7 @@ return_type make_remote_call(const char *servernameorip,
     buf_index += length;
 
     va_start(listPointer, nparams);
-    printf("%i parameters", nparams);
+    printf("%i parameters\n", nparams);
    
     int i=0;
     for (i = 0; i < nparams; i++) {
@@ -67,27 +66,21 @@ return_type make_remote_call(const char *servernameorip,
         memcpy(buf + buf_index, &size, sizeof (size));
         buf_index += sizeof (size);
 
-        printf("size: %i", size);
-        void* valuept = va_arg(listPointer, int);
+        printf("size: %i\n", size);
+        void* valuept = va_arg(listPointer, void*);
         memcpy(buf + buf_index, valuept, size);
         buf_index += size;
     }
 
- 
-
     sendto(sock, buf, sizeof (buf), 0, (struct sockaddr *) &server, sizeof (server));
     int nread;
+    char read[BUF_SIZE];
+    return_type ret;
 
     nread = recv(sock, read, BUF_SIZE, 0);
-    read[nread] = 0;
-    printf("Received: %s\n", read);
-    
+    //read[nread] = 0;
+    memcpy(&ret, read, nread);
     close(sock);
-    
-    int res = 5;
-    ret.return_val = &res;
-    ret.return_size = sizeof(res);
-
     
     return ret;
 }
