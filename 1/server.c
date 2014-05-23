@@ -43,7 +43,7 @@ return_type concat(const int nparams, arg_type* a) {
 	char* j = (char *)(a->next->arg_val);
 
 	char *ret = strcat(i, j);
-	r.return_val = (void *)(&ret);
+	r.return_val = (void *)(ret);
 	r.return_size = strlen(ret);
 
 	return r;

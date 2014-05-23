@@ -79,7 +79,10 @@ return_type make_remote_call(const char *servernameorip,
 
     nread = recv(sock, read, BUF_SIZE, 0);
     //read[nread] = 0;
-    memcpy(&ret, read, nread);
+    memcpy(&ret, read, sizeof(ret));
+    void* return_value= (void *)malloc(ret.return_size);
+    memcpy(return_value, read+sizeof(ret), ret.return_size);
+    ret.return_val=return_value;
     close(sock);
     
     return ret;

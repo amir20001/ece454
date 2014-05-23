@@ -129,23 +129,27 @@ void launch_server() {
 
             node *n = find(function_list, func_name);
             char t[BUF_SIZE];
-            //return_type ret = NULL;
+            return_type ret;
 
             if (n != NULL) {
                 printf("found %s with %d %p\n", n->name, n->nparams, n->fp);
                 fp_type func = (n->fp);
-                return_type ret = (*func)(nparams, arg_list);
+                ret = (*func)(nparams, arg_list);
+                //printf("ret_val: %s",ret.return_val);
                 printf("calc\n");
                 //printf("answer: %d, %d\n", ret.return_size, (ret.return_val));
                 memcpy(t, &ret, sizeof(ret));
-                sendto(sock, t, strlen(t), 0, (struct sockaddr *) &remaddr, addrlen);
+                memcpy(t+sizeof(ret),ret.return_val,ret.return_size);
+                sendto(sock, t, sizeof(t), 0, (struct sockaddr *) &remaddr, addrlen);
             } else {
                 printf("not found\n");
+                ret.return_val = NULL;
+		ret.return_size = 0;
                 //return_type *f = (return_type*)malloc(sizeof(return_type));
                 //f->return_size = 0;
                 //f->return_val = (void*)NULL;
-                //memcpy(t, ret, sizeof(&ret));
-                //sendto(sock, t, strlen(t), 0, (struct sockaddr *) &remaddr, addrlen);
+                memcpy(t, &ret, sizeof(ret));
+                sendto(sock, t, strlen(t), 0, (struct sockaddr *) &remaddr, addrlen);
             }
             //printf("answer: %d, %d\n", ret.return_size, (ret.return_val));
 
