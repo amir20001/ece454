@@ -7,6 +7,8 @@
 #include <string.h>
 #include <ifaddrs.h>
 
+#include <net/if.h>
+
 #define BUF_SIZE 2048
 
 queue *function_list;
@@ -70,8 +72,13 @@ void launch_server() {
     for (ifa = ifaddr, n = 0; ifa != NULL; ifa = ifa->ifa_next, n++) {
         if (ifa->ifa_addr == NULL)
             continue;
+        
+        if ((strcmp("lo", ifa->ifa_name) == 0) || 
+          !(ifa->ifa_flags & (IFF_RUNNING)))
+            continue;
 
         family = ifa->ifa_addr->sa_family;
+
         /* For an AF_INET* interface address, display the address */
         if (family == AF_INET) {
             s = getnameinfo(ifa->ifa_addr,
@@ -82,7 +89,8 @@ void launch_server() {
                 printf("getnameinfo() failed: %s\n", gai_strerror(s));
                 exit(EXIT_FAILURE);
             }
-            if (n==2) {
+            if (strcmp(ifa->ifa_name, "eth0") == 0 ||
+                    strcmp(ifa->ifa_name, "lo") == 0) {
                 break;
             }
         }
