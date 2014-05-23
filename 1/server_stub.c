@@ -82,7 +82,9 @@ void launch_server() {
                 printf("getnameinfo() failed: %s\n", gai_strerror(s));
                 exit(EXIT_FAILURE);
             }
-            break;
+            if (n==2) {
+                break;
+            }
         }
     }
     freeifaddrs(ifaddr);
