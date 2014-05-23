@@ -26,6 +26,7 @@ return_type make_remote_call(const char *servernameorip,
     sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock == -1) {
         perror("failed creating socket");
+        exit(EXIT_FAILURE);
     }
     if (inet_pton(AF_INET, servernameorip, &(server.sin_addr)) <= 0) {
         struct hostent *lh = gethostbyname(servernameorip);
@@ -37,13 +38,15 @@ return_type make_remote_call(const char *servernameorip,
                 inet_pton(AF_INET, inet_ntoa(*addr_list[0]), &(server.sin_addr));
             } else {
                 //invalid hostname
+                exit(EXIT_FAILURE);
             }
 
-        } else
+        } else {
             printf("invalid name or ip\n");
+            exit(EXIT_FAILURE);
+        }
     }
 
-    //inet_pton(AF_INET, "127.0.0.1", &(server.sin_addr));
     server.sin_family = AF_INET;
     server.sin_port = htons(serverportnumber);
     
@@ -58,7 +61,6 @@ return_type make_remote_call(const char *servernameorip,
     buf_index += length;
 
     va_start(listPointer, nparams);
-    printf("%i parameters\n", nparams);
    
     int i=0;
     for (i = 0; i < nparams; i++) {
@@ -66,7 +68,6 @@ return_type make_remote_call(const char *servernameorip,
         memcpy(buf + buf_index, &size, sizeof (size));
         buf_index += sizeof (size);
 
-        printf("size: %i\n", size);
         void* valuept = va_arg(listPointer, void*);
         memcpy(buf + buf_index, valuept, size);
         buf_index += size;
@@ -78,7 +79,6 @@ return_type make_remote_call(const char *servernameorip,
     return_type ret;
 
     nread = recv(sock, read, BUF_SIZE, 0);
-    //read[nread] = 0;
     memcpy(&ret, read, sizeof(ret));
     void* return_value= (void *)malloc(ret.return_size);
     memcpy(return_value, read+sizeof(ret), ret.return_size);

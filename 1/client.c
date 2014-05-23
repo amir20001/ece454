@@ -10,9 +10,7 @@ int main() {
                                             "addtwo", 2,
                                             sizeof(int), (void *)(&a),
                                             sizeof(int), (void *)(&b));
-        printf("got it\n");
 	int i = *(int *)(ans.return_val);
-        printf("got it\n");
 	printf("client, got result: %d\n", i);
         
         /*

@@ -46,6 +46,7 @@ void launch_server() {
     sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock == -1) {
         perror("failed creating socket");
+        exit(EXIT_FAILURE);
     }
  
     server.sin_family = AF_INET;
@@ -54,6 +55,7 @@ void launch_server() {
 
     if (mybind(sock, &server) == -1) {
         perror("bind failed");
+        exit(EXIT_FAILURE);
     }
 
     struct ifaddrs *ifaddr, *ifa;
@@ -62,6 +64,7 @@ void launch_server() {
 
     if (getifaddrs(&ifaddr) == -1) {
         perror("getifaddrs");
+        exit(EXIT_FAILURE);
     }
 
     for (ifa = ifaddr, n = 0; ifa != NULL; ifa = ifa->ifa_next, n++) {
@@ -79,17 +82,17 @@ void launch_server() {
                 printf("getnameinfo() failed: %s\n", gai_strerror(s));
                 exit(EXIT_FAILURE);
             }
-            //printf("\t\taddress: <%s>\n", host);
             break;
         }
     }
     freeifaddrs(ifaddr);
 
-    printf("running udp server on %s:%d\n", inet_ntoa(server.sin_addr), ntohs(server.sin_port));
+    //printf("running udp server on %s:%d\n", inet_ntoa(server.sin_addr), ntohs(server.sin_port));
     printf("running udp server on %s:%d\n", host, ntohs(server.sin_port));
 
+    //loop forever
     for (;;) {
-        //rc = recv (sock, buf, sizeof(buf), 0);
+        //check to see if we are sent any information
         rc = recvfrom(sock, buf, sizeof (buf), 0, (struct sockaddr *) &remaddr, &addrlen);
         if (rc > 0) {
             int nparams;
@@ -97,62 +100,51 @@ void launch_server() {
             int buf_index=0;
             int i=0;
             
+            //retrieve the number of parameters
             memcpy(&nparams, buf+buf_index, sizeof(nparams));
             buf_index+=sizeof(nparams);
-            printf("nparam: %i\n", nparams);
             
+            //retrieve the size of the function name
             memcpy(&func_name_size, buf+buf_index, sizeof(size_t));
             buf_index+=sizeof(size_t);
-            printf("size: %zd\n", func_name_size);
             
+            //retrieve the function name
             char func_name[func_name_size+1];
             func_name[func_name_size]=0;
             memcpy(func_name,buf+buf_index,func_name_size);
             buf_index+=func_name_size;
-            printf("func_name: %s\n",func_name);
             
+            //get all the parameters and add them to the arg_type linked list
             for(i = 0; i < nparams; i++) {
                 size_t param_size;
                 memcpy(&param_size, buf + buf_index, sizeof (size_t));
                 buf_index += sizeof (size_t);
-                printf("param_size: %zd\n", param_size);
                 
                 void *param = malloc(param_size);
                 memcpy(param, buf + buf_index, param_size);
                 buf_index += param_size;
-                // TODO do something with this
                 
+                //append the parameters to the linked list
                 append(param_size, param);
             }
-            
-            printf("Received: %s\n", func_name);
 
+            //check to see if we can find the function based on name
             node *n = find(function_list, func_name);
             char t[BUF_SIZE];
             return_type ret;
 
             if (n != NULL) {
-                printf("found %s with %d %p\n", n->name, n->nparams, n->fp);
                 fp_type func = (n->fp);
                 ret = (*func)(nparams, arg_list);
-                //printf("ret_val: %s",ret.return_val);
-                printf("calc\n");
-                //printf("answer: %d, %d\n", ret.return_size, (ret.return_val));
                 memcpy(t, &ret, sizeof(ret));
-                memcpy(t+sizeof(ret),ret.return_val,ret.return_size);
+                memcpy(t+sizeof(ret), ret.return_val, ret.return_size);
                 sendto(sock, t, sizeof(t), 0, (struct sockaddr *) &remaddr, addrlen);
             } else {
-                printf("not found\n");
                 ret.return_val = NULL;
-		ret.return_size = 0;
-                //return_type *f = (return_type*)malloc(sizeof(return_type));
-                //f->return_size = 0;
-                //f->return_val = (void*)NULL;
+                ret.return_size = 0;
                 memcpy(t, &ret, sizeof(ret));
                 sendto(sock, t, strlen(t), 0, (struct sockaddr *) &remaddr, addrlen);
             }
-            //printf("answer: %d, %d\n", ret.return_size, (ret.return_val));
-
         }
     }
 }
@@ -165,8 +157,6 @@ bool register_procedure(const char *procedure_name,
         function_list = (queue*) malloc(sizeof (queue));
         init(function_list);
     }
-    printf("registering procedure %s\n", procedure_name);
     enqueue(function_list, procedure_name, nparams, fnpointer);
-
     return true;
 }
