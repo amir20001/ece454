@@ -43,17 +43,7 @@ Therefore the equality does not hold.
 
 \item
  \begin{enumerate}
-	\item 
-
-\begin{figure}[ht!]
-\centering
-\includegraphics[width=70mm]{q2a_m2.png}
-\caption{Chord DHT m=2}
-
-\end{figure}
-
-
-  If we look at the trend from the images above we can see that exactly half of the nodes need to be updated in a worst case scenario. 
+	\item If we look at the trend in figures 2 and 3 below we can see that exactly half of the nodes need to be updated in a worst case scenario.
 \[
 \frac{2^m} {2}
 \]
@@ -100,6 +90,22 @@ The worst case scenario for Ring election would be if every node started an elec
 
 
 \item One way to get rid of duplicate messages as soon as possible would be to add a timestamp to the election message. After a node sees the message they will keep track of it and if another message gets past to them that has a new a time stamp the node will not forward it. The node will reset the timestamp after it receives the response from the initiator. If we don’t want to modify the election message by adding a timestamp to it the same concept can be applied by counting how large the list in the message is but this method does not work as well.
+
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=70mm]{q2a_m2.png}
+\caption{Chord DHT m=2}
+\label{overflow}
+\end{figure}
+
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=70mm]{q2a_m3.png}
+\caption{Chord DHT m=2}
+\label{overflow}
+\end{figure}
 
 \end{enumerate}
 
