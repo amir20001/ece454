@@ -1,0 +1,49 @@
+\documentclass{article}
+\usepackage{siunitx}
+\usepackage{mathtools}
+\usepackage{enumerate}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\sisetup{load-configurations = abbreviations}
+
+\usepackage{fullpage}
+
+\begin{document}
+
+\begin{center}
+\textsc{\Large ECE 454 Assignment 3}\\[0.5cm]
+\textsc{Amir Benham 20393292, Andrew Svoboda 20369388}\\[0.5cm]
+\end{center}
+
+\begin{enumerate}
+
+	\item 
+
+	\item 
+	By induction. Where the hypothesis is: a connected graph with one node has no edges.
+	
+	When there are \(k\) nodes, we have there are \(k-1\) edges. Show that with \(k+1\) nodes, there are \(k\) edges. 
+
+	We can say that a connected graph \(G\) has \(k+1\) nodes, and take one of the leaf nodes of the tree. We know that a leaf node can only have one edge. If we remove this leaf node and corresponding edge, \(G\) is still a tree. Thus, \(G\) now has \(k\) nodes, and \(k - 1\) edges.
+
+	In effect, if one removes each node and the associated edge, then at the end there will only exist the root node without any other edges. 
+
+	\item 
+
+
+	\item 
+
+	\begin{enumerate}
+		\item There are two client processes operating, \(P_a\) and \(P_b\). \(P_a\) requests a read of file \(f\) at time 1.  \(P_b\) requests to write to file \(f\) at time 2. The UNIX notion of correctness states that the read will occur and return the last state of the file, before \(P_b\)'s changes take effect. However, if there is a large delay when processing such that the write of \(P_b\) takes effect before \(P_a\) but lasts longer than the read, then \(P_a\) will see the file as it was changed, while operating under the assumption that no such change is in effect.
+
+		\item
+
+		\item
+	\end{enumerate}
+
+	\item 
+
+	\item 
+\end{enumerate}
+
+\end{document}
