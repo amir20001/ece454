@@ -34,9 +34,11 @@
 	\item 
 
 	\begin{enumerate}
-		\item There are two client processes operating, \(P_a\) and \(P_b\). \(P_a\) requests a read of file \(f\) at time 1.  \(P_b\) requests to write to file \(f\) at time 2. The UNIX notion of correctness states that the read will occur and return the last state of the file, before \(P_b\)'s changes take effect. However, if there is a large delay when processing such that the write of \(P_b\) takes effect before \(P_a\) but lasts longer than the read, then \(P_a\) will see the file as it was changed, while operating under the assumption that no such change is in effect.
+		\item There are two client processes operating, \(P_a\) and \(P_b\). \(P_a\) requests a read of file \(f\) at time 1.  \(P_b\) requests to write to file \(f\) at time 2. The UNIX notion of correctness states that the read will occur and return the last state of the file, before \(P_b\)'s changes take effect. However, if there is a large delay such that the write of \(P_b\) takes effect before \(P_a\), then \(P_a\) will see the file as it was changed, while operating under the assumption that no such change is in effect.
 
-		\item
+		Alternatively, this question could be interpreted in the following manner. If the same processes above, \(P_a\) and \(P_b\), both attempt a write operation of the same file at the same time, we can construct a situation where UNIX correctness fails. If \(P_a\) begins the write first, and \(P_a\) finishes the write after \(P_b\), then \(P_b\)'s write will override that of \(P_a\). Essentially the OS uses the start time of the write to assert which should be treated as the correct write, rather than the last write of the file. 
+
+		\item By instead using the end time of the successful write, rather than the start time, to determine the correct write the notion of UNIX correctness is met.
 
 		\item
 	\end{enumerate}
