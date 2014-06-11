@@ -17,7 +17,9 @@
 
 \begin{enumerate}
 
-	\item 
+	\item  
+
+By contradiction. Graph \(G\) exists where the vertices of \(S\) are disconnected from each other. That is, there is more than one edge between any one of the vertices of \(S\). If there exists a subtree of an MST of \(G\) that contains all of \(S\), then there must be at least one or more nodes of \(G\) in the subtree, indicating that the subtree cannot be a steiner tree of \(S\).
 
 	\item 
 	By induction. Where the hypothesis is: a connected graph with one node has no edges.
@@ -29,6 +31,8 @@
 	In effect, if one removes each node and the associated edge, then at the end there will only exist the root node without any other edges. 
 
 	\item 
+
+		By contradiction. \(T\), the MST of \(G\) contains the vertices \(u\) and \(v\). We know that because \(T\) is an MST, there is one unique path from \(u\) to \(v\). If \((Q, V / Q\)) is a cut of \(G\), then the cut must cross one edge of \(T\). If however the cut crosses more than one edge of \(T\), then there must exist a cycle within \(T\), which would then imply \(T\) could not possibly be an MST.
 
 
 	\item 
