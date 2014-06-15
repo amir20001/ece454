@@ -32,7 +32,7 @@ By contradiction. Graph \(G\) exists where the vertices of \(S\) are disconnecte
 
 	\item 
 
-		By contradiction. \(T\), the MST of \(G\) contains the vertices \(u\) and \(v\). We know that because \(T\) is an MST, there is one unique path from \(u\) to \(v\). If \((Q, V / Q\)) is a cut of \(G\), then the cut must cross one edge of \(T\). If however the cut crosses more than one edge of \(T\), then there must exist a cycle within \(T\), which would then imply \(T\) could not possibly be an MST.
+		By contradiction. \(T\), the MST of \(G\) contains the vertices \(u\) and \(v\). We know that because \(T\) is an MST, there is at least one path from \(u\) to \(v\). If \((Q, V / Q\)) is a cut of \(G\), then the cut must cross one edge of \(T\). If however the cut crosses more than one edge of \(T\), then there must exist a cycle within \(T\), which would then imply \(T\) could not possibly be an MST.
 
 
 	\item 
@@ -44,12 +44,12 @@ By contradiction. Graph \(G\) exists where the vertices of \(S\) are disconnecte
 
 		\item By instead using the end time of the successful write, rather than the start time, to determine the correct write the notion of UNIX correctness is met.
 
-		\item When a start transaction is received by the server we will associate an id and a time with the user’s transaction. When a user tries to write to a file, the server will store the changes to the file with out committing it. When a client tries to read a file the server will just keep a list of files that need to be read. When the server receives the end transaction it should look at all the files that are being accessed and if any of them have been modified since the transaction started the transaction will fail and none of the changes will be committed and nothing will be return to the user. On the other hand if no changes have been made everything should be committed and the requested data should be returned to the client.
+		\item When a start transaction is received by the server we will associate an id and a time with the user's transaction. When a user tries to write to a file, the server will store the changes to the file with out committing it. When a client tries to read a file the server will just keep a list of files that need to be read. When the server receives the end transaction it should look at all the files that are being accessed and if any of them have been modified since the transaction started the transaction will fail and none of the changes will be committed and nothing will be return to the user. On the other hand if no changes have been made everything should be committed and the requested data should be returned to the client.
 	\end{enumerate}
 
-	\item we have a skew of 10 ticks per millisecond which results in 10 000 tick skew per second and 600 000 per minute. This translates to a clock skew of 600 milliseconds 
+	\item There is a skew of 10 ticks per millisecond which results in 10,000 tick skew per second and 600,000 per minute. This translates to a clock skew of 600 milliseconds.
 
-	\item  Yes every message must be acknowledged since the message will not be passed to the application if all other processes have acknowledged the message.  This is required to guarantee that all the processes will have the same message queue.
+	\item  Yes, every message must be acknowledged since the message will not be passed to the application if all other processes have acknowledged the message. This is required to guarantee that all the processes will have the same message queue.
 \end{enumerate}
 
 \end{document}
