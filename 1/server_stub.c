@@ -97,8 +97,7 @@ void launch_server() {
     }
     freeifaddrs(ifaddr);
 
-    //printf("running udp server on %s:%d\n", inet_ntoa(server.sin_addr), ntohs(server.sin_port));
-    printf("running udp server on %s:%d\n", host, ntohs(server.sin_port));
+    printf("%s %d\n", host, ntohs(server.sin_port));
 
     //loop forever
     for (;;) {
