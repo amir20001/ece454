@@ -13,7 +13,6 @@ int main() {
 	int i = *(int *)(ans.return_val);
 	printf("client, got result: %d\n", i);
         
-        /*
         char * c = "asd";
         char * d = "fgh";
         return_type dd = make_remote_call("localhost",
@@ -23,6 +22,5 @@ int main() {
                                             strlen(d),(d));
 	char * e = (char *)(dd.return_val);
 	printf("client, got result: %s\n", e);
-         */
 	return 0;
 }
