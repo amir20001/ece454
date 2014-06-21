@@ -1,0 +1,40 @@
+\documentclass{article}
+\usepackage{siunitx}
+\usepackage{mathtools}
+\usepackage{enumerate}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\sisetup{load-configurations = abbreviations}
+
+\usepackage{fullpage}
+
+\begin{document}
+
+\begin{center}
+\textsc{\Large ECE 454 Assignment 5}\\[0.5cm]
+\textsc{Amir Benham 20393292, Andrew Svoboda 20369388}\\[0.5cm]
+\end{center}
+
+\begin{enumerate}
+
+	\item  
+
+Through \(k_1\) we know that  \(a -> b\) holds for all events local to that process which means we only need to consider interactions between processes. \(k_2\) tells us any event sent from \(p_1\) to \(p_2\) will have a higher \(C(x)\) at the receiver. If we have a scenario \(a -> b\) at process \(p_1\) and we want to send both of these to p2. When we send a to \(p2\) we know that \(C(a) p_2 > C(a) p_1\), and when we send b to \(p_2\) we know \(C(b) p_1 > C(b) p_2\).  We also know that a would be sent before b which means on the receiving side \(C(a) p_2 < C(b) p_2\). Since we know this holds between \(p_1\) and \(p_2\) we can expand this to \(p_1\) to \(p_n\).
+
+	\item
+
+	\item
+
+	\item
+
+One way for the clients to arrange themselves in to a ring would be to organize themselves as they join. When a new client joins they will send out a join message that everyone will see, then some client will reply with their current id, since all clients will see this message. If any of them have a higher id they will also reply to the message once the highest current id is found the joining client will assign themselves that id plus one. The previous highest will make this new client its successor and the joining client will make the oldest client its successor.
+
+	\item
+
+	\item
+
+The reason that the number of messages are unbounded is because the token can just go around the ring endlessly if no one wants the resource. To fix this we can create an on demand system where to whoever wants the resource will send out a request message and only then will the token be released. This mean that \(n\) messages will have to be sent every time.
+
+\end{enumerate}
+
+\end{document}
