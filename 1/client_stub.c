@@ -62,16 +62,17 @@ return_type make_remote_call(const char *servernameorip,
 
     va_start(listPointer, nparams);
    
-    int i=0;
+    int i;
     for (i = 0; i < nparams; i++) {
         size_t size = va_arg(listPointer, size_t);
         memcpy(buf + buf_index, &size, sizeof (size));
-        buf_index += sizeof (size);
+        buf_index += sizeof(size);
 
         void* valuept = va_arg(listPointer, void*);
         memcpy(buf + buf_index, valuept, size);
         buf_index += size;
     }
+    va_end(listPointer);
 
     sendto(sock, buf, sizeof (buf), 0, (struct sockaddr *) &server, sizeof (server));
     int nread;
