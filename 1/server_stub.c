@@ -10,7 +10,7 @@
 
 #include <net/if.h>
 
-#define BUF_SIZE 2048
+#define BUF_SIZE 4096
 
 node *function_list;
 
@@ -121,9 +121,9 @@ void launch_server() {
             
             //get all the parameters and add them to the arg_type linked list
             for(i = 0; i < nparams; i++) {
-                size_t param_size;
-                memcpy(&param_size, buf + buf_index, sizeof(size_t));
-                buf_index += sizeof(size_t);
+                int param_size;
+                memcpy(&param_size, buf + buf_index, sizeof(int));
+                buf_index += sizeof(int);
                 
                 void *param = malloc(param_size);
                 memcpy(param, buf + buf_index, param_size);

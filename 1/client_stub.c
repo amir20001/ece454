@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include <string.h>
 
-#define BUF_SIZE 2048
+#define BUF_SIZE 4096
 
 return_type make_remote_call(const char *servernameorip,
         const int serverportnumber,
@@ -19,7 +19,7 @@ return_type make_remote_call(const char *servernameorip,
 
     int sock;
     struct sockaddr_in server;
-    va_list listPointer;
+    va_list list_pointer;
  
     char buf[BUF_SIZE];
     unsigned int buf_index = 0;
@@ -60,19 +60,19 @@ return_type make_remote_call(const char *servernameorip,
     strcpy(buf + buf_index, procedure_name);
     buf_index += length;
 
-    va_start(listPointer, nparams);
-   
+    va_start(list_pointer, nparams);
+
     int i;
     for (i = 0; i < nparams; i++) {
-        size_t size = va_arg(listPointer, size_t);
-        memcpy(buf + buf_index, &size, sizeof (size));
-        buf_index += sizeof(size);
+        int size = va_arg(list_pointer, int);
+        memcpy(buf + buf_index, &size, sizeof (int));
+        buf_index += sizeof(int);
 
-        void* valuept = va_arg(listPointer, void*);
+        void* valuept = va_arg(list_pointer, void*);
         memcpy(buf + buf_index, valuept, size);
         buf_index += size;
     }
-    va_end(listPointer);
+    va_end(list_pointer);
 
     sendto(sock, buf, sizeof (buf), 0, (struct sockaddr *) &server, sizeof (server));
     int nread;
@@ -81,9 +81,9 @@ return_type make_remote_call(const char *servernameorip,
 
     nread = recv(sock, read, BUF_SIZE, 0);
     memcpy(&ret, read, sizeof(ret));
-    void* return_value= (void *)malloc(ret.return_size);
+    void* return_value = (void *)malloc(ret.return_size);
     memcpy(return_value, read+sizeof(ret), ret.return_size);
-    ret.return_val=return_value;
+    ret.return_val = return_value;
     close(sock);
     
     return ret;
