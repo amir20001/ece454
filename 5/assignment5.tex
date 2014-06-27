@@ -21,19 +21,29 @@
 
 Through \(k_1\) we know that  \(a -> b\) holds for all events local to that process which means we only need to consider interactions between processes. \(k_2\) tells us any event sent from \(p_1\) to \(p_2\) will have a higher \(C(x)\) at the receiver. If we have a scenario \(a -> b\) at process \(p_1\) and we want to send both of these to p2. When we send a to \(p2\) we know that \(C(a) p_2 > C(a) p_1\), and when we send b to \(p_2\) we know \(C(b) p_1 > C(b) p_2\).  We also know that a would be sent before b which means on the receiving side \(C(a) p_2 < C(b) p_2\). Since we know this holds between \(p_1\) and \(p_2\) we can expand this to \(p_1\) to \(p_n\).
 
-	\item
+Assuming there are no network issues, we know from Condition 1 that event \(a\) must occur before event \(b\) on process \(i\). From Condition 2, we know that \(a\) must occur at process \(i\) before all other processes. Therefore it is trivially simple to see that condition \(k_0\) is satisfied as \(C(a)\) must occur before all \(C(b)\).
 
 	\item
 
+When \(VC_i\) sends data to \(VC_j\), the first process sends the entire vector clock and precedence list. If an event occurs on process \(i\) which is then propagated to process \(j\), process \(j\) must update the vector clock to reflect the new event from process \(i\). Therefore, the causal precedence must hold across processes and the claim is shown to be true. 
+
 	\item
 
-One way for the clients to arrange themselves in to a ring would be to organize themselves as they join. When a new client joins they will send out a join message that everyone will see, then some client will reply with their current id, since all clients will see this message. If any of them have a higher id they will also reply to the message once the highest current id is found the joining client will assign themselves that id plus one. The previous highest will make this new client its successor and the joining client will make the oldest client its successor.
+Yes, the protocol achieves causally ordered multicast using logical clocks. Using the acknowledgments built into the protocol, messages can only be passed on after the correct acknowledgments have been received. Causal ordering is just a less strict bound than total ordering, as each event still must be in the same correct order, without the absolute timestamp.
+
+	\item
+
+One way for the clients to arrange themselves in to a ring would be to organize themselves as they join. When a new client wants to join the ring, it sends a message to the ring which is forwarded to the node in position 0. This 'master' node sends a request around the ring until the final \(n-1\) node, which responds to the initial request with it's id and the id of the master node. The new joining node responds with id + 1, and updates its 'next' node to the master node. The \(n-1\) node updates it's 'next' pointer to the newly joined node. This protocol has a constant space complexity, as each node keeps track of only one other node. This protocol has a time complexity for joining of \(n\), where \(n\) is the number of nodes in the ring.
 
 	\item
 
 	\item
 
 The reason that the number of messages are unbounded is because the token can just go around the ring endlessly if no one wants the resource. To fix this we can create an on demand system where to whoever wants the resource will send out a request message and only then will the token be released. This mean that \(n\) messages will have to be sent every time.
+
+	\item
+
+The output of '001110' is not legal. Any interleaving of the three processes ends with the final print statement of any of x, y and z. This print statement must occur after all other assignment statements, and so the final two digits of the output cannot contain a '0' character.
 
 \end{enumerate}
 
