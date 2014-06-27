@@ -18,4 +18,4 @@ libstubs.a: server_stub.o client_stub.o mybind.o queue.o
 
 .PHONY: clean
 clean:
-	rm -rf *.out *.o core *.a
+	rm -rf *.out *.o core *.a client server

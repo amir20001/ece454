@@ -5,6 +5,21 @@
 int ret_int;
 return_type r;
 
+return_type nop(const int nparams, arg_type* a) {
+	if(nparams != 0) {
+		/* Error! */
+		r.return_val = NULL;
+		r.return_size = 0;
+		return r;
+	}
+
+	ret_int = 189998;
+	r.return_val = (void *)(&ret_int);
+	r.return_size = sizeof(int);
+
+	return r;
+}
+
 return_type add(const int nparams, arg_type* a) {
 	if(nparams != 2) {
 		/* Error! */
@@ -52,6 +67,7 @@ return_type concat(const int nparams, arg_type* a) {
 int main() {
     register_procedure("addtwo", 2, add);
     register_procedure("concat", 2, concat);
+    register_procedure("nop", 0, nop);
 
     launch_server();
 

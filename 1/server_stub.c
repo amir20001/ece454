@@ -6,44 +6,40 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ifaddrs.h>
+#include <stdbool.h>
 
 #include <net/if.h>
 
-#define BUF_SIZE 2048
+#define BUF_SIZE 4096
 
-queue *function_list;
+node *function_list;
+
 arg_type *arg_list;
 arg_type *current;
 
-void init_list(int size, void* param) {
-    arg_type *ptr = (arg_type*)malloc(sizeof(arg_type));
-    ptr->arg_size = size;
-    ptr->arg_val = param;
-    ptr->next = NULL;
-    arg_list = current = ptr;
-}
+void append(size_t size, void * param) {
+    arg_type *p = (arg_type*)malloc(sizeof(arg_type));
+    p->arg_size = size;
+    p->arg_val = (void*)malloc(size);
+    memcpy(p->arg_val, param, size);
+    p->next = NULL;
 
-void append(int size, void * param) {
     if (arg_list == NULL) {
-        init_list(size, param);
+        arg_list = current = p;
     } else {
-        arg_type *p = (arg_type*)malloc(sizeof(arg_type));
-
-        p->arg_size = size;
-        p->arg_val = param;
-        p->next = NULL;
-        
         current->next = p;
-        current = p;
     }
+    current = p;
 }
 
 void launch_server() {
     int sock;
     struct sockaddr_in server, remaddr; //our address, remote address
     socklen_t addrlen = sizeof (remaddr);
-    char buf[2048];
+    char buf[BUF_SIZE];
     int rc;
+
+    arg_list = NULL;
 
     sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock == -1) {
@@ -125,9 +121,9 @@ void launch_server() {
             
             //get all the parameters and add them to the arg_type linked list
             for(i = 0; i < nparams; i++) {
-                size_t param_size;
-                memcpy(&param_size, buf + buf_index, sizeof (size_t));
-                buf_index += sizeof (size_t);
+                int param_size;
+                memcpy(&param_size, buf + buf_index, sizeof(int));
+                buf_index += sizeof(int);
                 
                 void *param = malloc(param_size);
                 memcpy(param, buf + buf_index, param_size);
@@ -154,6 +150,16 @@ void launch_server() {
                 memcpy(t, &ret, sizeof(ret));
                 sendto(sock, t, strlen(t), 0, (struct sockaddr *) &remaddr, addrlen);
             }
+
+            //free stuff up here
+            buf_index = 0;
+            arg_type *arg = arg_list;
+            while(arg != NULL) {
+                arg_type *tmp = arg;
+                arg = arg->next;
+                free(tmp);
+            }
+            arg_list = current = NULL;
         }
     }
 }
@@ -162,10 +168,19 @@ bool register_procedure(const char *procedure_name,
         const int nparams,
         fp_type fnpointer) {
 
-    if (function_list == NULL) {
-        function_list = (queue*) malloc(sizeof (queue));
-        init(function_list);
+    if (procedure_name == NULL) {
+        return false;
     }
-    enqueue(function_list, procedure_name, nparams, fnpointer);
+
+    node *cur_node = (node *)malloc(sizeof(node));
+    cur_node->next = NULL;
+    cur_node->name = (char*)calloc(strlen(procedure_name)+1, sizeof(char));
+    strcpy((cur_node->name), procedure_name);
+    cur_node->nparams = nparams;
+    cur_node->fp = fnpointer;
+    cur_node->next = function_list;
+
+    function_list = cur_node;
+
     return true;
 }

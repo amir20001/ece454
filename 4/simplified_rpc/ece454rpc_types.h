@@ -1,7 +1,5 @@
 /* ECE 454 -- S'14, types and extern declarations for Assignment 1 */
 #include <stdbool.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
 
 /* returnType */
 typedef struct {
@@ -22,7 +20,7 @@ typedef struct arg {
 typedef return_type (*fp_type)(const int, arg_type *);
 
 /******************************************************************/
-/* extern declarations -- you need to implement these 3 functions */
+/* extern declarations -- you need to implement these 4 functions */
 /******************************************************************/
 
 /* The following need to be implemented in the server stub */
@@ -47,7 +45,7 @@ extern bool register_procedure(const char *procedure_name,
  * application procedure. It returns the result to the client, and goes back
  * to listening for more requests.
  */
-extern void launch_server();
+void launch_server();
 
 /* The following needs to be implemented in the client stub. This is a
  * procedure with a variable number of arguments that the app programmer's
@@ -60,16 +58,3 @@ extern return_type make_remote_call(const char *servernameorip,
 	                            const char *procedure_name,
 	                            const int nparams,
 				    ...);
-
-extern int mybind(int sockfd, struct sockaddr_in *addr);
-
-typedef struct node {
-	const char* name;
-	int nparams;
-	fp_type fp;
-	struct node *next;
-} node;
-
-void print_single(node *p);
-
-node* find(node *n, char *name);
