@@ -29,7 +29,7 @@ When \(VC_i\) sends data to \(VC_j\), the first process sends the entire vector 
 
 	\item
 
-Yes, the protocol achieves causally ordered multicast using logical clocks. Using the acknowledgments built into the protocol, messages can only be passed on after the correct acknowledgments have been received. Causal ordering is just a less strict bound than total ordering, as each event still must be in the same correct order, without the absolute timestamp.
+No, the protocol does not achieve causally ordered multicast. Logical clocks can only provide a weak casual relationship, and are not able to synchronize time across all processes. If one process \(P_i\) sends a message with a large timestamp to process \(P_j\), then \(P_j\) will queue the message with the large timestamp. \(P_j\) should then also update it's own time to reflect the larger \(P_i\) message. However, because the other processes can only infer a weak causal relationship with the acknowledgment, and not a total ordering of the system. That is, a process can continually have the highest timestamp compared to all other processes, and will continue to update every other process to it's time. However, nodes that continue to be updated by another larger timestamp node will have no relationship to one another, which is required for total ordering.
 
 	\item
 
