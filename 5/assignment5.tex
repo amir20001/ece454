@@ -36,6 +36,8 @@ Yes, the protocol achieves causally ordered multicast using logical clocks. Usin
 One way for the clients to arrange themselves in to a ring would be to organize themselves as they join. When a new client wants to join the ring, it sends a message to the ring which is forwarded to the node in position 0. This 'master' node sends a request around the ring until the final \(n-1\) node, which responds to the initial request with it's id and the id of the master node. The new joining node responds with id + 1, and updates its 'next' node to the master node. The \(n-1\) node updates it's 'next' pointer to the newly joined node. This protocol has a constant space complexity, as each node keeps track of only one other node. This protocol has a time complexity for joining of \(n\), where \(n\) is the number of nodes in the ring.
 
 	\item
+	
+One way that the decentralized method can be bounded is by adding a queue to every node. Whenever a node requests a resource every node will add the request to the queue. From that point whenever a resource becomes available a new round of voting will occur. Assuming each node can put in at most one request the queue will build up to a max size of n. This means in a worst case 3mn messages will be sent and in a best case it will be 3m messages sent.
 
 	\item
 
