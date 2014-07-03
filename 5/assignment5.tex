@@ -24,8 +24,8 @@ Through \(k_1\) we know that  \(a -> b\) holds for all events local to that proc
 Assuming there are no network issues, we know from Condition 1 that event \(a\) must occur before event \(b\) on process \(i\). From Condition 2, we know that \(a\) must occur at process \(i\) before all other processes. Therefore it is trivially simple to see that condition \(k_0\) is satisfied as \(C(a)\) must occur before all \(C(b)\).
 
 	\item
-
-When \(VC_i\) sends data to \(VC_j\), the first process sends the entire vector clock and precedence list. If an event occurs on process \(i\) which is then propagated to process \(j\), process \(j\) must update the vector clock to reflect the new event from process \(i\). Therefore, the causal precedence must hold across processes and the claim is shown to be true. 
+	
+We know \(a ->b \) if \( VC(a) <VC(b)\) holds based on the way vector clocks do their updates and the proof in q1.  For the only if part, suppose \(a\) does not happen-before \(b\). Then \(a\) and \(b\) are events of different processes \(p_i\) and \(p_j\). For \(VC(a) < VC(b)\) to hold, we must have \(VC(a)_{pi} < VC(b)_{pj}\). But this can only happen if the value of \(VC(a)\) is sent to \(p_j\) by some sequence of messages starting at \(p_i\) and ending at \(p_j\) at or before \(b\) occurs. In this case we have \(a -> b\).
 
 	\item
 
