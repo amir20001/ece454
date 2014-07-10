@@ -19,6 +19,8 @@ int fsMount(const char *srvIpOrDomName, const unsigned int srvPort, const char *
 				"fsMount", 1,
 				strlen(localFolderName), localFolderName); 
 
+    printf("bloo\n");
+
     if (ret.return_val != 0) {
         errno = *(int*)(ret.return_val);
     }

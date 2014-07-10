@@ -9,13 +9,19 @@
 #include <stdlib.h>
 #include <string.h>
 
-/*
-int fsMount(const char *srvIpOrDomName, const unsigned int srvPort, const char *localFolderName) {
+return_type fsMount(const int nparams, arg_type *a) {
+    /*
     struct stat sbuf;
 
     return(stat(localFolderName, &sbuf));
+    */
+	return_type ret;
+	ret.return_val = 0;
+	ret.return_size = sizeof(int);
+	return ret; 
 }
 
+/*
 int fsUnmount(const char *localFolderName) {
     return 0;
 }
@@ -100,6 +106,7 @@ int main(int argc, char *argv[]) {
 	char *fs = argv[1];
 
 	register_procedure("fsRemove", 1, fsRemove);
+	register_procedure("fsMount", 1, fsMount);
 	launch_server();
 	return 0;
 }
