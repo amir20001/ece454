@@ -16,10 +16,10 @@ server:	libstubs
 	$(CC) $(CFLAGS) -g server.c $(RPC) -o fsServer
 
 client: libstubs client_api.a
-	$(CC) $(CFLAGS) -g fs_client.c -L. -lclient_api $(RPC) -o fsClient
+	$(CC) $(CFLAGS) -g fs_client.c client_api.a -o fsClient
 
 $(OBJECTS): %.o: %.c ece454_fs.h
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c -g $< -o $@
 
 clean:
 	rm -rf a.out *.o core *.a fs_client fsServer fsClient

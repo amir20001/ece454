@@ -6,26 +6,26 @@
 #include "ece454_fs.h"
 #include "simplified_rpc/ece454rpc_types.h"
 
+#include <errno.h>
 #include <string.h>
 
 struct fsDirent dent;
 
 int fsMount(const char *srvIpOrDomName, const unsigned int srvPort, const char *localFolderName) {
-    struct stat sbuf;
 
-    //return(stat(localFolderName, &sbuf));
     return_type ret;
     ret = make_remote_call(srvIpOrDomName, srvPort, 
 				"fsMount", 1,
 				strlen(localFolderName), localFolderName); 
 
-    printf("bloo\n");
-
     if (ret.return_val != 0) {
-        errno = *(int*)(ret.return_val);
+        //potentially change to 
+        //errno = *(int*)ret.return_val;
+        errno = EPERM;
+        return -1;
     }
 
-    return *(int*)(ret.return_val);
+    return 0;
 }
 
 int fsUnmount(const char *localFolderName) {

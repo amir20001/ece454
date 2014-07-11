@@ -4,10 +4,12 @@
 
 #include "ece454_fs.h"
 
+extern void printBuf(char *buf, int size);
+
 int main(int argc, char *argv[]) {
     char *dirname = NULL;
     char *ipaddr = NULL;
-    int port = 0;
+    unsigned int port = 0;
 
     if(argc > 3) {
         dirname = argv[1];
@@ -19,8 +21,8 @@ int main(int argc, char *argv[]) {
     }
 
     printf("bloop\n");
-
-    printf("fsMount(): %d\n", fsMount(ipaddr, port, dirname));
+    int res = fsMount(ipaddr, port, dirname);
+    printf("fsMount(): %d\n", res);
     exit(0);
     FSDIR *fd = fsOpenDir(dirname);
     if(fd == NULL) {
