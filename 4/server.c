@@ -40,14 +40,39 @@ struct fsDirent *fsReadDir(FSDIR *folder) {
 
 int fsOpen(const char *fname, int mode) {
 
-int fsClose(int fd) {
-
 int fsRead(int fd, void *buf, const unsigned int count) {
 
 int fsWrite(int fd, const void *buf, const unsigned int count) {
 
 int fsRemove(const char *name) {
 */
+
+
+return_type fsClose(const int nparams, arg_type *a) {
+    return_type ret;
+    if (nparams != 1) {
+        ret.return_val = NULL;
+        ret.return_size = 0;
+        return ret;
+    }
+
+    if(a->arg_size != sizeof(int)) {
+        ret.return_val = NULL;
+        ret.return_size = 0;
+        return ret;
+    }
+
+    int fd = *(int*)(a->arg_val);
+    int r = close(fd);
+
+    ret.return_val = (void*)(r);
+    ret.return_size = sizeof(int);
+
+    //TODO
+    //is there a lock on this file? wat do
+
+    return ret;
+}
 
 return_type fsRemove(const int nparams, arg_type *a) {
 	//wat do

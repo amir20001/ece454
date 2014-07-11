@@ -11,6 +11,9 @@
 
 struct fsDirent dent;
 
+char *srvIp = NULL;
+unsigned int port = 0;
+
 int fsMount(const char *srvIpOrDomName, const unsigned int srvPort, const char *localFolderName) {
 
     return_type ret;
@@ -19,21 +22,41 @@ int fsMount(const char *srvIpOrDomName, const unsigned int srvPort, const char *
 				strlen(localFolderName), localFolderName); 
 
     if (ret.return_val != 0) {
-        //potentially change to 
-        //errno = *(int*)ret.return_val;
-        errno = EPERM;
+        errno = *(int*)ret.return_val;
         return -1;
     }
+
+    srvIp = srvIpOrDomName;
+    port = srvPort;
 
     return 0;
 }
 
 int fsUnmount(const char *localFolderName) {
+    return_type ret;
+    ret = make_remote_call(srvIp, port, 
+				"fsOpenDir", 1,
+				strlen(folderName), folderName); 
+
+    if (ret.return_val != 0) {
+        errno = *(int*)ret.return_val;
+        return -1;
+    }
     return 0;
 }
 
 FSDIR* fsOpenDir(const char *folderName) {
-    return(opendir(folderName));
+    return_type ret;
+    ret = make_remote_call(srvIp, port, 
+				"fsOpenDir", 1,
+				strlen(folderName), folderName); 
+
+    if (ret.return_val != 0) {
+        errno = *(int*)ret.return_val;
+        return NULL;
+    }
+    //not correct
+    return *(FSDIR*)ret.return_val;
 }
 
 int fsCloseDir(FSDIR *folder) {
