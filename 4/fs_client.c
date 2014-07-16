@@ -20,12 +20,14 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    printf("bloop\n");
     int res = fsMount(ipaddr, port, dirname);
     printf("fsMount(): %d\n", res);
-    exit(0);
-    FSDIR *fd = fsOpenDir(dirname);
+
+    //FSDIR *fd = fsOpenDir(dirname);
+    FSDIR *fd = fsOpenDir("/home/asvoboda/test");
+    printf("%d\n", fd);
     if(fd == NULL) {
+        printf("fsOpenDir failed\n");
         perror("fsOpenDir"); exit(1);
     }
 

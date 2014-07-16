@@ -12,14 +12,14 @@
 struct fsDirent dent;
 
 char *srvIp = NULL;
-unsigned int port = 0;
+int port = 0;
 
 int fsMount(const char *srvIpOrDomName, const unsigned int srvPort, const char *localFolderName) {
 
     return_type ret;
     ret = make_remote_call(srvIpOrDomName, srvPort, 
 				"fsMount", 1,
-				strlen(localFolderName), localFolderName); 
+				strlen(localFolderName)+1, (void*)(localFolderName)); 
 
     if (ret.return_val != 0) {
         errno = *(int*)ret.return_val;
@@ -35,8 +35,8 @@ int fsMount(const char *srvIpOrDomName, const unsigned int srvPort, const char *
 int fsUnmount(const char *localFolderName) {
     return_type ret;
     ret = make_remote_call(srvIp, port, 
-				"fsOpenDir", 1,
-				strlen(folderName), folderName); 
+				"fsUnmount", 1,
+				strlen(localFolderName)+1, (void*)(localFolderName)); 
 
     if (ret.return_val != 0) {
         errno = *(int*)ret.return_val;
@@ -49,21 +49,31 @@ FSDIR* fsOpenDir(const char *folderName) {
     return_type ret;
     ret = make_remote_call(srvIp, port, 
 				"fsOpenDir", 1,
-				strlen(folderName), folderName); 
+				strlen(folderName)+1, (void*)(folderName)); 
 
-    if (ret.return_val != 0) {
-        errno = *(int*)ret.return_val;
+    if (ret.return_val == 0) {
+        //errno = *(int*)ret.return_val;
         return NULL;
     }
-    //not correct
-    return *(FSDIR*)ret.return_val;
+    //TODO: is this correct?
+    return (FSDIR*)ret.return_val;
 }
 
 int fsCloseDir(FSDIR *folder) {
-    return(closedir(folder));
+    return_type ret;
+    ret = make_remote_call(srvIp, port, 
+				"fsCloseDir", 1,
+				sizeof(folder), (void*)(folder)); 
+
+    if (ret.return_val != 0) {
+        errno = *(int*)ret.return_val;
+        return -1;
+    }
+    return 0;
 }
 
 struct fsDirent *fsReadDir(FSDIR *folder) {
+    /*
     const int initErrno = errno;
     struct dirent *d = readdir(folder);
 
@@ -84,23 +94,59 @@ struct fsDirent *fsReadDir(FSDIR *folder) {
 
     memcpy(&(dent.entName), &(d->d_name), 256);
     return &dent;
+    */
+
+    return_type ret;
+    ret = make_remote_call(srvIp, port, 
+				"fsReadDir", 1,
+				sizeof(folder), (void*)(folder)); 
+
+    if (ret.return_val == 0) {
+        errno = -1; //TODO: fix 
+        return NULL;
+    }
+    struct dirent *d;
+
+    if(d->d_type == DT_DIR) {
+	dent.entType = 1;
+    }
+    else if(d->d_type == DT_REG) {
+	dent.entType = 0;
+    }
+    else {
+	dent.entType = -1;
+    }
+    
+    memcpy(&(dent.entName), &(d->d_name), 256);
+    return &dent;
 }
 
 int fsOpen(const char *fname, int mode) {
-    int flags = -1;
-
-    if(mode == 0) {
-	flags = O_RDONLY;
+    return_type ret;
+    ret = make_remote_call(srvIp, port, 
+				"fsOpen", 2,
+				strlen(fname)+1, (void*)fname,
+                sizeof(int), (void*)(&mode)); 
+            
+    int fd = *(int*)(ret.return_val); 
+    if (fd == -1) {
+        errno = 1; //TODO
+        return -1;
     }
-    else if(mode == 1) {
-	flags = O_WRONLY | O_CREAT;
-    }
-
-    return(open(fname, flags, S_IRWXU));
+    return fd;
 }
 
 int fsClose(int fd) {
-    return(close(fd));
+    return_type ret;
+    ret = make_remote_call(srvIp, port, 
+				"fsClose", 1,
+				sizeof(int), (void*)(&fd)); 
+
+    if (ret.return_val != 0) {
+        errno = *(int*)ret.return_val;
+        return -1;
+    }
+    return 0;
 }
 
 int fsRead(int fd, void *buf, const unsigned int count) {
@@ -112,5 +158,14 @@ int fsWrite(int fd, const void *buf, const unsigned int count) {
 }
 
 int fsRemove(const char *name) {
-    return(remove(name));
+    return_type ret;
+    ret = make_remote_call(srvIp, port, 
+				"fsRemove", 1,
+				strlen(name)+1, (void*)(name)); 
+
+    if (ret.return_val != 0) {
+        errno = *(int*)ret.return_val;
+        return -1;
+    }
+    return 0;
 }
