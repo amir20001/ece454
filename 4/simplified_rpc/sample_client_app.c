@@ -105,8 +105,13 @@ int main(int argc, char *argv[])
 	printf("usage: %s <server ip/name> <server port>\n", argv[0]);
 	return 0;
     }
-    int a = -10, b = 20;
     return_type ans;
+
+    ans = make_remote_call(argv[1], atoi(argv[2]), "nothing", 0);
+
+    printf("nothing():: ans.return_val = %d\n", ans.return_size);
+
+    int a = -10, b = 20;
     ans = make_remote_call(argv[1],
 		       atoi(argv[2]),
 		       "addtwo", 2,

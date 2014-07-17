@@ -21,6 +21,21 @@ return_type r;
 
 extern printRegisteredProcedures();
 
+return_type nothing(const int nparams, arg_type *a) {
+    /* Takes no args, and returns nothing meaningful */
+#if 0
+    printf("nothing() invoked at server\n"); fflush(stdout);
+#endif
+    r.return_size = 0;
+    r.return_val = NULL;
+
+#if 0
+    printf("nothing() returning at server\n"); fflush(stdout);
+#endif
+
+    return r;
+}
+
 return_type add(const int nparams, arg_type* a)
 {
     if(nparams != 2) {
@@ -129,6 +144,7 @@ return_type concatStr(const int nparams, arg_type *a) {
 }
 
 int main() {
+    register_procedure("nothing", 0, nothing);
     register_procedure("addtwo", 2, add);
     register_procedure("pickFirst", 2, pickFirst);
     register_procedure("max_of_integer_array", 1, max);
