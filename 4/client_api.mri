@@ -1,4 +1,4 @@
-create client_api.a
+create libclient-api.a
 addlib lib_client.a
 addlib ./simplified_rpc/libstubs.a
 save
