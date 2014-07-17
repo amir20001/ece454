@@ -23,24 +23,36 @@ int main(int argc, char *argv[]) {
     int res = fsMount(ipaddr, port, dirname);
     printf("fsMount(): %d\n", res);
 
-    //FSDIR *fd = fsOpenDir(dirname);
-    FSDIR *fd = fsOpenDir("/home/asvoboda/test");
-    printf("%d\n", fd);
+    FSDIR *fd = fsOpenDir(dirname);
     if(fd == NULL) {
         printf("fsOpenDir failed\n");
         perror("fsOpenDir"); exit(1);
     }
+    printf("successfully opened aliased dir: %s\n", dirname);
+    printf("fsCloseDir(): %d\n", fsCloseDir(fd));
 
+/*
+    char *another = strcat(dirname, "/ok");
+    printf("trying: %s\n", another);
+    fd = fsOpenDir(another);
+    if(fd == NULL) {
+        printf("fsOpenDir failed\n");
+        perror("fsOpenDir"); exit(1);
+    }
+    printf("successfully opened aliased dir: %s\n", another);
+*/
     struct fsDirent *fdent = NULL;
     for(fdent = fsReadDir(fd); fdent != NULL; fdent = fsReadDir(fd)) {
-        printf("\t %s, %d\n", fdent->entName, (int)(fdent->entType));
+        printf("[%s], %d\n", fdent->entName, (int)(fdent->entType));
     }
 
     if(errno != 0) {
-        perror("fsReadDir");
+        perror("fsReadDir"); exit(1);
     }
 
     printf("fsCloseDir(): %d\n", fsCloseDir(fd));
+
+    exit(0); //TODO: continue
 
     int ff = fsOpen("/dev/urandom", 0);
     if(ff < 0) {
