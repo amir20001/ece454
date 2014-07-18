@@ -21,14 +21,17 @@ return_type ret;
 char *mountedDir = NULL;
 
 return_type fsMount(const int nparams, arg_type *a);
-return_type fsRemove(const int nparams, arg_type *a);
-return_type fsClose(const int nparams, arg_type *a);
+return_type fsUnmount(const int nparams, arg_type *a);
+
 return_type fsOpen(const int nparams, arg_type *a);
 return_type fsRead(const int nparams, arg_type *a);
 return_type fsWrite(const int nparams, arg_type *a);
+return_type fsClose(const int nparams, arg_type *a);
+return_type fsRemove(const int nparams, arg_type *a);
 
 return_type fsOpenDir(const int nparams, arg_type *a);
 return_type fsReadDir(const int nparams, arg_type *a);
+return_type fsCloseDir(const int nparams, arg_type *a);
 
 return_type fsMount(const int nparams, arg_type *a) {
     if (nparams != 1) {
@@ -36,10 +39,22 @@ return_type fsMount(const int nparams, arg_type *a) {
         ret.return_size = 0;
         return ret;
     }
-    printf("returning.. %s\n", mountedDir);
+    //printf("returning.. %s\n", mountedDir);
     ret.return_val = malloc(strlen(mountedDir)+1);
     memcpy(ret.return_val, mountedDir, strlen(mountedDir)+1);
 	ret.return_size = strlen(mountedDir)+1;
+	return ret; 
+}
+
+return_type fsUnmount(const int nparams, arg_type *a) {
+    if (nparams != 1) {
+        ret.return_val = NULL;
+        ret.return_size = 0;
+        return ret;
+    }
+    printf("unmount \n");
+    ret.return_val = NULL;
+	ret.return_size = 0;
 	return ret; 
 }
 
@@ -58,14 +73,10 @@ return_type fsOpenDir(const int nparams, arg_type *a) {
         ret.return_size = 0;
         return ret;
     }
+    ret.return_val = (FSDIR*)malloc(sizeof(dir));
+    memcpy(ret.return_val, dir, sizeof(dir));
 
-    //TODO: why 
-    rewinddir(dir);
-
-    //TODO: ehh..
-    ret.return_val = (void*)dir;
-    ret.return_size = sizeof(dir);
-    printf("opened dir: %d\n", dir);
+    ret.return_size = sizeof(ret.return_val);
     return ret;
 }
 
@@ -77,7 +88,8 @@ return_type fsReadDir(const int nparams, arg_type *a) {
     }
 
     printf("starting readdir\n");
-    FSDIR* dir = (FSDIR*)(a->arg_val);
+    FSDIR* dir = (FSDIR*)malloc((size_t)a->arg_size);
+    memcpy(dir, a->arg_val, (size_t)a->arg_size);
     struct dirent *ent;
     printf("reading dir: %d\n", dir);
 
@@ -91,7 +103,7 @@ return_type fsReadDir(const int nparams, arg_type *a) {
     }
 
     printf("not dead yet\n");
-    //TODO: is this okay?
+    //TODO: gotta actually verify if we can just do this
     ret.return_val = (void*)ent;
     ret.return_size = sizeof(ent);
     return ret;
@@ -130,21 +142,23 @@ return_type fsRemove(const int nparams, arg_type *a) {
 }
 
 return_type fsOpen(const int nparams, arg_type *a) {
+    //printf("trying to open file\n");
     if (nparams != 2) {
         ret.return_val = NULL;
         ret.return_size = 0;
         return ret;
     }
 
-    if(a->next->arg_size != sizeof(int)) {
+    if(a->arg_size != sizeof(int)) {
         ret.return_val = NULL;
         ret.return_size = 0;
         return ret;
     }
 
-    char *fname = (char*)(a->arg_val);
+    char *fname = (char*)(a->next->arg_val);
+    //printf("trying to open %s\n", fname);
     int flags = -1;
-    int mode = *(int*)(a->next->arg_val);
+    int mode = *(int*)(a->arg_val);
     if (mode == 0) {
         flags = O_RDONLY;
     } else {
@@ -169,6 +183,7 @@ return_type fsClose(const int nparams, arg_type *a) {
         ret.return_size = 0;
         return ret;
     }
+    printf("trying to close file\n");
 
     int fd = *(int*)(a->arg_val);
     int *r = (int*)malloc(sizeof(int));
@@ -184,32 +199,6 @@ return_type fsClose(const int nparams, arg_type *a) {
 }
 
 return_type fsRead(const int nparams, arg_type *a) {
-    if (nparams != 2) {
-        ret.return_val = NULL;
-        ret.return_size = 0;
-        return ret;
-    }
-
-    if(a->arg_size != sizeof(int) || a->next->arg_size != sizeof(int)) {
-        ret.return_val = NULL;
-        ret.return_size = 0;
-        return ret;
-    }
-
-    int fd = *(int*)(a->arg_val);
-    int *r = (int*)malloc(sizeof(int));
-    *r = close(fd);
-
-    ret.return_val = (void*)(r);
-    ret.return_size = sizeof(int);
-
-    //TODO
-    //is there a lock on this file? wat do
-
-    return ret;
-}
-
-return_type fsWrite(const int nparams, arg_type *a) {
     if (nparams != 3) {
         ret.return_val = NULL;
         ret.return_size = 0;
@@ -223,14 +212,55 @@ return_type fsWrite(const int nparams, arg_type *a) {
     }
 
     int fd = *(int*)(a->arg_val);
+    char *buf = (char*)(a->next->arg_val);
+    int count = *(int*)(a->next->next->arg_val);
     int *r = (int*)malloc(sizeof(int));
-    *r = close(fd);
+    *r = read(fd, buf, (size_t)count);
+    //printf("read buf: %s\n", buf);
+    printf("read buf\n");
+
+    int buf_index = 0;
+    int size = sizeof(int) + strlen(buf) + 1;
+    char *retbuf = (char*)malloc((size_t)size);
+    memcpy(retbuf, r, sizeof(int));
+    buf_index += sizeof(int);
+
+    //TODO:is this okay?
+    strcat(retbuf, buf);
+    //printf("sending buf: %s\n", retbuf);
+    ret.return_val = (void*)(retbuf);
+    ret.return_size = size;
+
+    printf("sending buf\n");
+    return ret;
+}
+
+return_type fsWrite(const int nparams, arg_type *a) {
+    printf("starting write\n");
+    if (nparams != 3) {
+        ret.return_val = NULL;
+        ret.return_size = 0;
+        return ret;
+    }
+
+    if(a->arg_size != sizeof(int) || a->next->next->arg_size != sizeof(int)) {
+        ret.return_val = NULL;
+        ret.return_size = 0;
+        return ret;
+    }
+
+    printf("okay lets write\n");
+
+    int fd = *(int*)(a->arg_val);
+    char *buf = (char*)(a->next->arg_val);
+    int count = *(int*)(a->next->next->arg_val);
+    int *r = (int*)malloc(sizeof(int));
+    *r = write(fd, buf,(size_t) count);
+
+    printf("wrote %d many bytes\n", *r);
 
     ret.return_val = (void*)(r);
     ret.return_size = sizeof(int);
-
-    //TODO
-    //is there a lock on this file? wat do
 
     return ret;
 }
@@ -259,18 +289,18 @@ int main(int argc, char *argv[]) {
             perror("exists but is not dir"); exit(1);
         }
     }
-	register_procedure("mount", 1, fsMount);
-	//register_procedure("fsUnmount", 1, fsUnmount);
+	register_procedure("fsMount", 1, fsMount);
+	register_procedure("fsUnmount", 1, fsUnmount);
 
 	register_procedure("fsOpenDir", 1, fsOpenDir);
     register_procedure("fsReadDir", 1, fsReadDir);
     register_procedure("fsCloseDir", 1, fsCloseDir);
 
-	register_procedure("fsRemove", 1, fsRemove);
-	register_procedure("fsClose", 1, fsClose);
 	register_procedure("fsOpen", 2, fsOpen);
-	register_procedure("fsRead", 2, fsOpen);
-	register_procedure("fsWrite", 3, fsOpen);
+	register_procedure("fsRead", 3, fsRead);
+	register_procedure("fsWrite", 3, fsWrite);
+	register_procedure("fsClose", 1, fsClose);
+	register_procedure("fsRemove", 1, fsRemove);
 	launch_server();
 
 	return 0;

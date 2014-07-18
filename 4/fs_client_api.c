@@ -7,6 +7,8 @@
 #include "simplified_rpc/ece454rpc_types.h"
 
 #include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 struct fsDirent dent;
@@ -52,7 +54,7 @@ int fsMount(const char *srvIpOrDomName, const unsigned int srvPort, const char *
 
     return_type ret;
     ret = make_remote_call(srvIpOrDomName, srvPort, 
-				"mount", 1,
+				"fsMount", 1,
 				strlen(localFolderName)+1, (void*)(localFolderName)); 
 
     if (ret.return_val == 0) {
@@ -145,11 +147,15 @@ int fsCloseDir(FSDIR *folder) {
 
 int fsOpen(const char *fname, int mode) {
     return_type ret;
+    printf("going to make open call\n");
+    printf("%s:%d\n", srvIp, port);
+    char *path = str_replace(fname, mountedDir, alias);
     ret = make_remote_call(srvIp, port, 
 				"fsOpen", 2,
-				strlen(fname)+1, (void*)fname,
-                sizeof(int), (void*)(&mode)); 
+                sizeof(int), (void*)(&mode),
+				strlen(path)+1, (void*)path); 
             
+    printf("made open call\n");
     int fd = *(int*)(ret.return_val); 
     if (fd == -1) {
         errno = 1; //TODO
@@ -172,11 +178,41 @@ int fsClose(int fd) {
 }
 
 int fsRead(int fd, void *buf, const unsigned int count) {
-    return(read(fd, buf, (size_t)count));
+    return_type ret;
+    ret = make_remote_call(srvIp, port, 
+				"fsRead", 3,
+                sizeof(int), (void*)(&fd),
+				strlen(buf)+1, buf,
+                sizeof(int), (void*)(&count)); 
+            
+    //int fd = *(int*)(ret.return_val); 
+    printf("length %d\n", ret.return_size);
+    printf("read :%s\n", (char*)ret.return_val);
+    int res;
+    memcpy(&res, (char*)(ret.return_val), sizeof(int));
+    memcpy(buf, ((char*)(ret.return_val)) + sizeof(int), ret.return_size - sizeof(int));
+
+    if (res == -1) {
+        errno = res; //TODO
+        return -1;
+    }
+    return res;
 }
 
 int fsWrite(int fd, const void *buf, const unsigned int count) {
-    return(write(fd, buf, (size_t)count)); 
+    return_type ret;
+    ret = make_remote_call(srvIp, port, 
+				"fsWrite", 3,
+                sizeof(int), (void*)(&fd),
+				strlen(buf)+1, buf,
+                sizeof(int), (void*)(&count)); 
+            
+    int res = *(int*)(ret.return_val); 
+    if (res == -1) {
+        errno = 1; //TODO
+        return -1;
+    }
+    return res;
 }
 
 int fsRemove(const char *name) {
