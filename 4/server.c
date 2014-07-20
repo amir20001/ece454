@@ -73,10 +73,15 @@ return_type fsOpenDir(const int nparams, arg_type *a) {
         ret.return_size = 0;
         return ret;
     }
-    ret.return_val = (FSDIR*)malloc(sizeof(dir));
-    memcpy(ret.return_val, dir, sizeof(dir));
+    //the size of the DIR struct is opaque to us
+    // this is likely the least offensive answer
+    int s = (sizeof(int) + (3*sizeof(size_t)) + sizeof(off_t) + sizeof(struct dirent));
+    printf("size of DIR (__dirstream) %d\n", s);
+    ret.return_val = (FSDIR*)malloc((size_t)s);
+    memcpy(ret.return_val, dir, (size_t)s);
 
-    ret.return_size = sizeof(ret.return_val);
+    //ret.return_size = sizeof(DIR);
+    ret.return_size = s;
     return ret;
 }
 
@@ -91,21 +96,33 @@ return_type fsReadDir(const int nparams, arg_type *a) {
     FSDIR* dir = (FSDIR*)malloc((size_t)a->arg_size);
     memcpy(dir, a->arg_val, (size_t)a->arg_size);
     struct dirent *ent;
-    printf("reading dir: %d\n", dir);
+    printf("size: %d\n", a->arg_size);
 
+    int er = errno;
     ent = readdir(dir);
 
     if (ent == NULL) {
         printf("ent is null \n");
-        ret.return_val = NULL;
-        ret.return_size = 0;
+        if (errno != er) {
+            //the error number changed, so something bad happened
+            ret.return_val = (int*)malloc(sizeof(errno));
+            memcpy(ret.return_val, &errno, sizeof(errno));
+            //ret.return_val = errno;
+            ret.return_size = sizeof(errno);
+        } else {
+            ret.return_val = NULL;
+            ret.return_size = 0;
+        }
         return ret;
     }
+    free(dir);
 
     printf("not dead yet\n");
     //TODO: gotta actually verify if we can just do this
-    ret.return_val = (void*)ent;
-    ret.return_size = sizeof(ent);
+    ret.return_val = (struct dirent*)malloc(sizeof(struct dirent));
+    memcpy(ret.return_val, ent, sizeof(struct dirent));
+    //ret.return_val = (void*)ent;
+    ret.return_size = sizeof(struct dirent);
     return ret;
 }
 

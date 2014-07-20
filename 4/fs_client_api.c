@@ -107,12 +107,16 @@ FSDIR* fsOpenDir(const char *folderName) {
 
 struct fsDirent *fsReadDir(FSDIR *folder) {
     return_type ret;
+    //read the comment at line 80 in server.c
+    int s = (sizeof(int) + sizeof(off_t) + (3*sizeof(size_t)) + sizeof(struct dirent));
     ret = make_remote_call(srvIp, port, 
 				"fsReadDir", 1,
-				sizeof(folder), (void*)(folder)); 
+				(size_t)s, (void*)(folder)); 
 
     if (ret.return_val == 0) {
-        errno = -1; //TODO: fix 
+        return NULL;
+    } else if (ret.return_size == sizeof(errno)) {
+        errno = *(int*)ret.return_val;
         return NULL;
     }
     struct dirent *d;
@@ -128,7 +132,6 @@ struct fsDirent *fsReadDir(FSDIR *folder) {
     }
     
     memcpy(&(dent.entName), &(d->d_name), 256);
-    printf("name [%s]\n", dent.entName);
     return &dent;
 }
 

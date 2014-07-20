@@ -273,7 +273,6 @@ void launch_server() {
 #endif
 
 	returnResult(asock, &ret);
-
 	free(fname);
 	freeArgs(a);
 	freeRet(ret);

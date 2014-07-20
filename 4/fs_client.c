@@ -5,7 +5,6 @@
 #include "ece454_fs.h"
 
 extern void printBuf(char *buf, int size);
-extern void fsii(void);
 
 int main(int argc, char *argv[]) {
     char *dirname = NULL;
@@ -66,9 +65,6 @@ int main(int argc, char *argv[]) {
     if(fsRead(ff, (void *)fname, 10) < 0) {
         perror("fsRead"); exit(1);
     }
-    if(fsRead(ff, (void *)fname, 10) < 0) {
-        perror("fsRead"); exit(1);
-    }
 
     int i;
     for(i = 0; i < 10; i++) {
@@ -82,8 +78,12 @@ int main(int argc, char *argv[]) {
     int siz = 200;
     char buf[siz];
     exit(0);
-    if(fsRead(ff, (void *)buf, siz) < 0) {
+    int readcount = fsRead(ff, (void*)buf, siz);
+
+    if(readcount < 0) {
 	    perror("fsRead(2)"); exit(1);
+    } else if (readcount < siz) {
+        fprintf(stderr, "fsRead() read fewer than %d\n", siz);
     }
 
     printf("%s\n", buf);

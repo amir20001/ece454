@@ -45,7 +45,7 @@ extern bool register_procedure(const char *procedure_name,
  * application procedure. It returns the result to the client, and goes back
  * to listening for more requests.
  */
-void launch_server();
+void launch_server(void);
 
 /* The following needs to be implemented in the client stub. This is a
  * procedure with a variable number of arguments that the app programmer's
