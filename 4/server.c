@@ -75,6 +75,7 @@ return_type fsOpenDir(const int nparams, arg_type *a) {
     }
     //the size of the DIR struct is opaque to us
     // this is likely the least offensive answer
+    // IF IT WORKS. FUCK
     int s = (sizeof(int) + (3*sizeof(size_t)) + sizeof(off_t) + sizeof(struct dirent));
     printf("size of DIR (__dirstream) %d\n", s);
     ret.return_val = (FSDIR*)malloc((size_t)s);
@@ -159,7 +160,6 @@ return_type fsRemove(const int nparams, arg_type *a) {
 }
 
 return_type fsOpen(const int nparams, arg_type *a) {
-    //printf("trying to open file\n");
     if (nparams != 2) {
         ret.return_val = NULL;
         ret.return_size = 0;
@@ -173,7 +173,7 @@ return_type fsOpen(const int nparams, arg_type *a) {
     }
 
     char *fname = (char*)(a->next->arg_val);
-    //printf("trying to open %s\n", fname);
+    printf("trying to open %s\n", fname);
     int flags = -1;
     int mode = *(int*)(a->arg_val);
     if (mode == 0) {
@@ -205,8 +205,9 @@ return_type fsClose(const int nparams, arg_type *a) {
     int fd = *(int*)(a->arg_val);
     int *r = (int*)malloc(sizeof(int));
     *r = close(fd);
+    printf("closed file with retcode %d\n", *r);
 
-    ret.return_val = (void*)(r);
+    ret.return_val = (void*)r;
     ret.return_size = sizeof(int);
 
     //TODO
@@ -237,17 +238,16 @@ return_type fsRead(const int nparams, arg_type *a) {
     printf("read buf\n");
 
     int buf_index = 0;
-    int size = sizeof(int) + strlen(buf) + 1;
+    int size = sizeof(int) + *r;
     char *retbuf = (char*)malloc((size_t)size);
     memcpy(retbuf, r, sizeof(int));
     buf_index += sizeof(int);
 
-    //TODO:is this okay?
-    strcat(retbuf, buf);
-    //printf("sending buf: %s\n", retbuf);
+    memcpy(retbuf + buf_index, buf, strlen(buf) + 1);
     ret.return_val = (void*)(retbuf);
     ret.return_size = size;
 
+    free(r);
     printf("sending buf\n");
     return ret;
 }
@@ -276,7 +276,7 @@ return_type fsWrite(const int nparams, arg_type *a) {
 
     printf("wrote %d many bytes\n", *r);
 
-    ret.return_val = (void*)(r);
+    ret.return_val = (void*)r;
     ret.return_size = sizeof(int);
 
     return ret;
