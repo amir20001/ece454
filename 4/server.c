@@ -102,7 +102,6 @@ return_type fsReadDir(const int nparams, arg_type *a) {
 	memcpy(dir_id, a->arg_val, (size_t) a->arg_size);
 	printf("recv id: %d\n",*dir_id);
 	struct dirent *ent;
-	printf("size: %d\n", a->arg_size);
 	node* found=find(open_dir_queue,*dir_id);
 	int er = errno;
 	ent = readdir(found->dir);
