@@ -5,7 +5,7 @@
  */
 #include "simplified_rpc/ece454rpc_types.h"
 #include "fsOtherIncludes.h"
-
+#include "queue.c"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,6 +34,19 @@ return_type fsRemove(const int nparams, arg_type *a);
 return_type fsOpenDir(const int nparams, arg_type *a);
 return_type fsReadDir(const int nparams, arg_type *a);
 return_type fsCloseDir(const int nparams, arg_type *a);
+
+bool add_open_dir(DIR* dir, int id) {
+	if (dir == NULL) {
+		return false;
+	}
+
+	node *cur_node = (node *) malloc(sizeof(node));
+	cur_node->dir = dir;
+	cur_node->id = id;
+	cur_node->next = open_dir_queue;
+	open_dir_queue = cur_node;
+	return true;
+}
 
 return_type fsMount(const int nparams, arg_type *a) {
     if (nparams != 1) {

@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
     int res = fsMount(ipaddr, port, dirname);
     printf("fsMount(): %d\n", res);
 
-/*
+
     FSDIR *fd = fsOpenDir(dirname);
     if(fd == NULL) {
         printf("fsOpenDir failed\n");
@@ -41,22 +41,6 @@ int main(int argc, char *argv[]) {
     }
 
     printf("fsCloseDir(): %d\n", fsCloseDir(fd));
-
-*/
-
-
-    FSDIR *fd = fsOpenDir(dirname);
-    if(fd == NULL) {
-        printf("fsOpenDir failed\n");
-        perror("fsOpenDir"); exit(1);
-    }
-    printf("successfully opened aliased dir: %s\n", dirname);
-    
-    /*
-    if(fsCloseDir(fd != 0)) {
-        perror("fsCloseDir"); exit(1);
-    }
-    */
 
     int ff = open("/dev/urandom", 0);
     if(ff < 0) {
@@ -83,7 +67,12 @@ int main(int argc, char *argv[]) {
     if(read(ff, (void *)buf, 256) < 0) {
         perror("read(2)"); exit(1);
     }
+	
+	for(i = 0; i < 256; i++) {
+        buf[i] = ((unsigned char)(buf[i]))%26 + 'a';
+    }
 
+	printf("buf: %s\n", buf);
     //printBuf(buf, 256);
 
     printf("close(/dev/urandom): %d\n", close(ff));
@@ -112,6 +101,8 @@ int main(int argc, char *argv[]) {
     if(readcount < 256) {
         fprintf(stderr, "fsRead() read fewer than 256\n");
     }
+	
+	printf("readbuf: %s\n", readbuf);
 
     if(memcmp(readbuf, buf, readcount)) {
         fprintf(stderr, "return buf from fsRead() differs from data written!\n");
