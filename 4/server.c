@@ -176,6 +176,7 @@ return_type fsOpen(const int nparams, arg_type *a) {
     } else {
         flags = O_WRONLY | O_CREAT;
     }
+    flags = flags & (~O_NONBLOCK);
     int *r = (int*)malloc(sizeof(int));
     *r = open(fname, flags, S_IRWXU);
     ret.return_val = (void*)r;
