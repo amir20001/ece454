@@ -5,7 +5,7 @@
  */
 #include "simplified_rpc/ece454rpc_types.h"
 #include "fsOtherIncludes.h"
-
+#include "queue.c"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,6 +19,8 @@
 
 return_type ret;
 char *mountedDir = NULL;
+int open_dir_id = 1;
+node *open_dir_queue;
 
 return_type fsMount(const int nparams, arg_type *a);
 return_type fsUnmount(const int nparams, arg_type *a);
@@ -32,6 +34,19 @@ return_type fsRemove(const int nparams, arg_type *a);
 return_type fsOpenDir(const int nparams, arg_type *a);
 return_type fsReadDir(const int nparams, arg_type *a);
 return_type fsCloseDir(const int nparams, arg_type *a);
+
+bool add_open_dir(DIR* dir, int id) {
+	if (dir == NULL) {
+		return false;
+	}
+
+	node *cur_node = (node *) malloc(sizeof(node));
+	cur_node->dir = dir;
+	cur_node->id = id;
+	cur_node->next = open_dir_queue;
+	open_dir_queue = cur_node;
+	return true;
+}
 
 return_type fsMount(const int nparams, arg_type *a) {
     if (nparams != 1) {
@@ -57,70 +72,77 @@ return_type fsUnmount(const int nparams, arg_type *a) {
 }
 
 return_type fsOpenDir(const int nparams, arg_type *a) {
-    if (nparams != 1) {
-        ret.return_val = NULL;
-        ret.return_size = 0;
-        return ret;
-    }
-    char *path = a->arg_val;
-    FSDIR* dir = (FSDIR*)opendir(path);
+	if (nparams != 1) {
+		ret.return_val = NULL;
+		ret.return_size = 0;
+		return ret;
+	}
+	printf("in fsOpenDir\n");
+	char *path = a->arg_val;
+	DIR* dir = opendir(path);
+	printf("dir opened,path: %s\n", path);
 
-    if (dir == NULL) {
-        ret.return_val = NULL;
-        ret.return_size = 0;
-        return ret;
-    }
-    //the size of the DIR struct is opaque to us
-    // this is likely the least offensive answer
-    // IF IT WORKS. FUCK
-    int s = (sizeof(int) + (3*sizeof(size_t)) + sizeof(off_t) + sizeof(struct dirent));
-    printf("size of DIR (__dirstream) %d\n", s);
-    ret.return_val = (FSDIR*)malloc((size_t)s);
-    memcpy(ret.return_val, dir, (size_t)s);
-
-    //ret.return_size = sizeof(DIR);
-    ret.return_size = s;
-    return ret;
+	if (dir == NULL) {
+		ret.return_val = NULL;
+		ret.return_size = 0;
+		return ret;
+	}
+	open_dir_id++;
+	printf("new id: %d\n",open_dir_id);
+	printf("adding to queue\n");
+	add_open_dir(dir, open_dir_id);
+	printf("DIR has been added to queue\n");
+	int *pid = (int*)malloc(sizeof(int));
+	memcpy(pid, &open_dir_id, sizeof(int));
+	ret.return_val = pid;
+	//memcpy(ret.return_val,&open_dir_id, sizeof(int));
+	//ret.return_val = &open_dir_id;
+	ret.return_size = sizeof(FSDIR);
+	return ret;
 }
 
 return_type fsReadDir(const int nparams, arg_type *a) {
-    if (nparams != 1) {
-        ret.return_val = NULL;
-        ret.return_size = 0;
-        return ret;
-    }
+		printf("starting readdir\n");
 
-    printf("starting readdir\n");
-    FSDIR* dir = (FSDIR*)malloc((size_t)a->arg_size);
-    memcpy(dir, a->arg_val, (size_t)a->arg_size);
-    struct dirent *ent;
-    printf("size: %d\n", a->arg_size);
+	if (nparams != 1) {
+		ret.return_val = NULL;
+		ret.return_size = 0;
+		return ret;
+	}
 
-    int er = errno;
-    ent = readdir(dir);
+	printf("starting readdir\n");
+	FSDIR *dir_id=  malloc((size_t) a->arg_size);
+	memcpy(dir_id, a->arg_val, (size_t) a->arg_size);
+	printf("recv id: %d\n",*dir_id);
+	struct dirent *ent;
+	node* found=find(open_dir_queue,*dir_id);
+	int er = errno;
+	ent = readdir(found->dir);
 
-    if (ent == NULL) {
-        printf("ent is null \n");
-        if (errno != er) {
-            //the error number changed, so something bad happened
-            ret.return_val = (int*)malloc(sizeof(errno));
-            memcpy(ret.return_val, &errno, sizeof(errno));
-            //ret.return_val = errno;
-            ret.return_size = sizeof(errno);
-        } else {
-            ret.return_val = NULL;
-            ret.return_size = 0;
-        }
-        return ret;
-    }
-    free(dir);
+	if (ent == NULL) {
+		printf("ent is null \n");
+		if (errno != er) {
+			//the error number changed, so something bad happened
+			ret.return_val = (int*) malloc(sizeof(errno));
+			memcpy(ret.return_val, &errno, sizeof(errno));
+			//ret.return_val = errno;
+			ret.return_size = sizeof(errno);
+		} else {
+			ret.return_val = NULL;
+			ret.return_size = 0;
+		}
+		return ret;
+	}
+	free(dir_id);
 
-    //TODO: gotta actually verify if we can just do this
-    ret.return_val = (struct dirent*)malloc(sizeof(struct dirent));
-    memcpy(ret.return_val, ent, sizeof(struct dirent));
-    //ret.return_val = (void*)ent;
-    ret.return_size = sizeof(struct dirent);
-    return ret;
+	printf("not dead yet\n");
+	//TODO: gotta actually verify if we can just do this
+	ret.return_val = (struct dirent*) malloc(sizeof(struct dirent));
+	printf("memory allocated\n ");
+	memcpy(ret.return_val, ent, sizeof(struct dirent));
+	//ret.return_val = (void*)ent;
+	ret.return_size = sizeof(struct dirent);
+	return ret;
 }
 
 return_type fsCloseDir(const int nparams, arg_type *a) {
