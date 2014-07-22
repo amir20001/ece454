@@ -39,7 +39,6 @@ return_type fsMount(const int nparams, arg_type *a) {
         ret.return_size = 0;
         return ret;
     }
-    //printf("returning.. %s\n", mountedDir);
     ret.return_val = malloc(strlen(mountedDir)+1);
     memcpy(ret.return_val, mountedDir, strlen(mountedDir)+1);
 	ret.return_size = strlen(mountedDir)+1;
@@ -52,7 +51,6 @@ return_type fsUnmount(const int nparams, arg_type *a) {
         ret.return_size = 0;
         return ret;
     }
-    printf("unmount \n");
     ret.return_val = NULL;
 	ret.return_size = 0;
 	return ret; 
@@ -66,7 +64,6 @@ return_type fsOpenDir(const int nparams, arg_type *a) {
     }
     char *path = a->arg_val;
     FSDIR* dir = (FSDIR*)opendir(path);
-    printf("path: %s\n", path);
 
     if (dir == NULL) {
         ret.return_val = NULL;
@@ -118,7 +115,6 @@ return_type fsReadDir(const int nparams, arg_type *a) {
     }
     free(dir);
 
-    printf("not dead yet\n");
     //TODO: gotta actually verify if we can just do this
     ret.return_val = (struct dirent*)malloc(sizeof(struct dirent));
     memcpy(ret.return_val, ent, sizeof(struct dirent));
@@ -173,7 +169,6 @@ return_type fsOpen(const int nparams, arg_type *a) {
     }
 
     char *fname = (char*)(a->next->arg_val);
-    printf("trying to open %s\n", fname);
     int flags = -1;
     int mode = *(int*)(a->arg_val);
     if (mode == 0) {
@@ -200,12 +195,10 @@ return_type fsClose(const int nparams, arg_type *a) {
         ret.return_size = 0;
         return ret;
     }
-    printf("trying to close file\n");
 
     int fd = *(int*)(a->arg_val);
     int *r = (int*)malloc(sizeof(int));
     *r = close(fd);
-    printf("closed file with retcode %d\n", *r);
 
     ret.return_val = (void*)r;
     ret.return_size = sizeof(int);
@@ -230,30 +223,28 @@ return_type fsRead(const int nparams, arg_type *a) {
     }
 
     int fd = *(int*)(a->arg_val);
-    char *buf = (char*)(a->next->arg_val);
     int count = *(int*)(a->next->next->arg_val);
-    int *r = (int*)malloc(sizeof(int));
-    *r = read(fd, buf, (size_t)count);
+    char *buf = (char*)malloc((size_t)count);
+    int r = read(fd, buf, (size_t)count);
     //printf("read buf: %s\n", buf);
     printf("read buf\n");
 
     int buf_index = 0;
-    int size = sizeof(int) + *r;
+    int size = sizeof(int) + r;
     char *retbuf = (char*)malloc((size_t)size);
-    memcpy(retbuf, r, sizeof(int));
+    memcpy(retbuf, &r, sizeof(int));
     buf_index += sizeof(int);
 
-    memcpy(retbuf + buf_index, buf, strlen(buf) + 1);
+    //strcpy(retbuf + buf_index, buf);
+    memcpy(retbuf+buf_index, buf, (size_t)r);
     ret.return_val = (void*)(retbuf);
     ret.return_size = size;
 
-    free(r);
-    printf("sending buf\n");
+    free(buf);
     return ret;
 }
 
 return_type fsWrite(const int nparams, arg_type *a) {
-    printf("starting write\n");
     if (nparams != 3) {
         ret.return_val = NULL;
         ret.return_size = 0;
@@ -266,7 +257,6 @@ return_type fsWrite(const int nparams, arg_type *a) {
         return ret;
     }
 
-    printf("okay lets write\n");
 
     int fd = *(int*)(a->arg_val);
     char *buf = (char*)(a->next->arg_val);
@@ -274,7 +264,6 @@ return_type fsWrite(const int nparams, arg_type *a) {
     int *r = (int*)malloc(sizeof(int));
     *r = write(fd, buf,(size_t) count);
 
-    printf("wrote %d many bytes\n", *r);
 
     ret.return_val = (void*)r;
     ret.return_size = sizeof(int);
@@ -301,7 +290,6 @@ int main(int argc, char *argv[]) {
             //is a directory... wat do?
             mountedDir = (char*)malloc((strlen(fs)+1));
             memcpy(mountedDir, fs, strlen(fs)+1);
-            printf("mounting.. %s\n", mountedDir);
         } else {
             perror("exists but is not dir"); exit(1);
         }

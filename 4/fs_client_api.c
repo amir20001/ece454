@@ -63,7 +63,6 @@ int fsMount(const char *srvIpOrDomName, const unsigned int srvPort, const char *
     }
 
     char *mm = (char*)ret.return_val;
-    printf("got %s\n", mm);
     alias = (char*)malloc(ret.return_size);
     memcpy(alias, mm, ret.return_size);
 
@@ -90,7 +89,8 @@ int fsUnmount(const char *localFolderName) {
 
 FSDIR* fsOpenDir(const char *folderName) {
     return_type ret;
-    char *path = str_replace(folderName, mountedDir, alias);
+    char *mountedPath = str_replace(folderName, mountedDir, alias);
+    char *path = str_replace(mountedPath, "/../", "/");
     ret = make_remote_call(srvIp, port, 
 				"fsOpenDir", 1,
 				strlen(path)+1, (void*)(path)); 
@@ -99,7 +99,6 @@ FSDIR* fsOpenDir(const char *folderName) {
         errno = -1; //TODO: correct?
         return NULL;
     }
-    printf("opened dir: %d\n", (FSDIR*)ret.return_val);
     //TODO: is this correct?
     return (FSDIR*)(ret.return_val);
 }
@@ -149,21 +148,18 @@ int fsCloseDir(FSDIR *folder) {
 
 int fsOpen(const char *fname, int mode) {
     return_type ret;
-    printf("going to make open call\n");
-    char *path = str_replace(fname, mountedDir, alias);
-    printf("path to open %s\n", path);
+    char *mountedPath = str_replace(fname, mountedDir, alias);
+    char *path = str_replace(mountedPath, "/../", "/");
     ret = make_remote_call(srvIp, port, 
 				"fsOpen", 2,
                 sizeof(int), (void*)(&mode),
 				strlen(path)+1, (void*)path); 
             
-    printf("made open call\n");
     int fd = *(int*)(ret.return_val); 
     if (fd == -1) {
         errno = 1; //TODO
         return -1;
     }
-    printf("finished open\n");
     return fd;
 }
 
@@ -190,15 +186,12 @@ int fsRead(int fd, void *buf, const unsigned int count) {
                 sizeof(int), (void*)(&count)); 
             
     //int fd = *(int*)(ret.return_val); 
-    printf("length %d\n", ret.return_size);
     int res;
     //we have the size of the buffer to read, and the size of everything together
-    memcpy(&res, (char*)(ret.return_val), sizeof(int));
-    memcpy(buf, ((char*)(ret.return_val)) + sizeof(int), ret.return_size - sizeof(int));
-    printf("read :%s\n", buf);
+    memcpy(&res, (ret.return_val), sizeof(int));
+    memcpy(buf, ((char*)ret.return_val + sizeof(int)),(size_t)(ret.return_size - sizeof(int)));
 
     if (res == -1) {
-        printf("error reading wil robinson\n");
         errno = res; //TODO
         return -1;
     }
@@ -207,32 +200,29 @@ int fsRead(int fd, void *buf, const unsigned int count) {
 
 int fsWrite(int fd, const void *buf, const unsigned int count) {
     return_type ret;
-    printf("trying to write\n");
     ret = make_remote_call(srvIp, port, 
 				"fsWrite", 3,
                 sizeof(int), (void*)(&fd),
 				strlen(buf)+1, buf,
                 sizeof(int), (void*)(&count)); 
             
-    printf("finished write call\n");
     int res = *(int*)(ret.return_val); 
     if (res == -1) {
         errno = 1; //TODO
         return -1;
     }
-    printf("finished write\n");
     return res;
 }
 
 int fsRemove(const char *name) {
     return_type ret;
-    char *path = str_replace(name, mountedDir, alias);
-    printf("trying to remove %s", path);
+    char *mountedPath = str_replace(name, mountedDir, alias);
+    char *path = str_replace(mountedPath, "/../", "/");
     ret = make_remote_call(srvIp, port, 
 				"fsRemove", 1,
 				strlen(path)+1, (void*)(path)); 
 
-    if (ret.return_val != 0) {
+    if (*(int*)ret.return_val != 0) {
         errno = *(int*)ret.return_val;
         return -1;
     }

@@ -108,7 +108,8 @@ int main(int argc, char *argv[]) {
 
     int readcount = -1;
 
-    if((readcount = fsRead(ff, readbuf, 256)) < 256) {
+    readcount = fsRead(ff, readbuf, 256);
+    if(readcount < 256) {
         fprintf(stderr, "fsRead() read fewer than 256\n");
     }
 
