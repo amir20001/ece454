@@ -265,7 +265,7 @@ return_type fsWrite(const int nparams, arg_type *a) {
         return ret;
     }
 
-    if(a->arg_size != sizeof(int) || a->next->next->arg_size != sizeof(int)) {
+    if(a->arg_size != sizeof(int) || a->next->arg_size != sizeof(int)) {
         ret.return_val = NULL;
         ret.return_size = 0;
         return ret;
@@ -273,9 +273,11 @@ return_type fsWrite(const int nparams, arg_type *a) {
 
 
     int fd = *(int*)(a->arg_val);
-    char *buf = (char*)(a->next->arg_val);
-    int count = *(int*)(a->next->next->arg_val);
+	int count = *(int*)(a->next->arg_val);
+    char *buf = (char*)(a->next->next->arg_val);
+    
     int *r = (int*)malloc(sizeof(int));
+	printBuf(buf, 256);
     *r = write(fd, buf,(size_t) count);
 
     ret.return_val = (void*)r;

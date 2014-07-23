@@ -205,8 +205,8 @@ int fsWrite(int fd, const void *buf, const unsigned int count) {
     ret = make_remote_call(srvIp, port, 
 				"fsWrite", 3,
                 sizeof(int), (void*)(&fd),
-				strlen(buf)+1, buf,
-                sizeof(int), (void*)(&count)); 
+				sizeof(int), (void*)(&count),
+				count, buf); 
             
     int res = *(int*)(ret.return_val); 
     if (res == -1) {
