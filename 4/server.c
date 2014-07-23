@@ -77,10 +77,8 @@ return_type fsOpenDir(const int nparams, arg_type *a) {
 		ret.return_size = 0;
 		return ret;
 	}
-	printf("in fsOpenDir\n");
 	char *path = a->arg_val;
 	DIR* dir = opendir(path);
-	printf("dir opened,path: %s\n", path);
 
 	if (dir == NULL) {
 		ret.return_val = NULL;
@@ -88,10 +86,7 @@ return_type fsOpenDir(const int nparams, arg_type *a) {
 		return ret;
 	}
 	open_dir_id++;
-	printf("new id: %d\n",open_dir_id);
-	printf("adding to queue\n");
 	add_open_dir(dir, open_dir_id);
-	printf("DIR has been added to queue\n");
 	int *pid = (int*)malloc(sizeof(int));
 	memcpy(pid, &open_dir_id, sizeof(int));
 	ret.return_val = pid;
@@ -102,7 +97,6 @@ return_type fsOpenDir(const int nparams, arg_type *a) {
 }
 
 return_type fsReadDir(const int nparams, arg_type *a) {
-		printf("starting readdir\n");
 
 	if (nparams != 1) {
 		ret.return_val = NULL;
@@ -110,17 +104,14 @@ return_type fsReadDir(const int nparams, arg_type *a) {
 		return ret;
 	}
 
-	printf("starting readdir\n");
-	FSDIR *dir_id=  malloc((size_t) a->arg_size);
+	FSDIR *dir_id = malloc((size_t) a->arg_size);
 	memcpy(dir_id, a->arg_val, (size_t) a->arg_size);
-	printf("recv id: %d\n",*dir_id);
 	struct dirent *ent;
 	node* found=find(open_dir_queue,*dir_id);
 	int er = errno;
 	ent = readdir(found->dir);
 
 	if (ent == NULL) {
-		printf("ent is null \n");
 		if (errno != er) {
 			//the error number changed, so something bad happened
 			ret.return_val = (int*) malloc(sizeof(errno));
@@ -135,10 +126,7 @@ return_type fsReadDir(const int nparams, arg_type *a) {
 	}
 	free(dir_id);
 
-	printf("not dead yet\n");
-	//TODO: gotta actually verify if we can just do this
 	ret.return_val = (struct dirent*) malloc(sizeof(struct dirent));
-	printf("memory allocated\n ");
 	memcpy(ret.return_val, ent, sizeof(struct dirent));
 	//ret.return_val = (void*)ent;
 	ret.return_size = sizeof(struct dirent);
@@ -152,11 +140,17 @@ return_type fsCloseDir(const int nparams, arg_type *a) {
         return ret;
     }
 
-    FSDIR* dir = (FSDIR*)a->arg_val;
+	FSDIR *dir_id = malloc((size_t) a->arg_size);
+	memcpy(dir_id, a->arg_val, (size_t) a->arg_size);
+	node* found=find(open_dir_queue,*dir_id);
 
     int *r = (int*)malloc(sizeof(int));
-    *r = closedir(dir);
+    *r = closedir(found->dir);
+    if (*r != 0) {
+        *r = errno;
+    }
 
+    free(dir_id);
     ret.return_val = (void*)r;
     ret.return_size = sizeof(int);
     return ret;
@@ -198,7 +192,6 @@ return_type fsOpen(const int nparams, arg_type *a) {
     } else {
         flags = O_WRONLY | O_CREAT;
     }
-    flags = flags & (~O_NONBLOCK);
     int *r = (int*)malloc(sizeof(int));
     *r = open(fname, flags, S_IRWXU);
     ret.return_val = (void*)r;
@@ -249,8 +242,6 @@ return_type fsRead(const int nparams, arg_type *a) {
     int count = *(int*)(a->next->next->arg_val);
     char *buf = (char*)malloc((size_t)count);
     int r = read(fd, buf, (size_t)count);
-    //printf("read buf: %s\n", buf);
-    printf("read buf\n");
 
     int buf_index = 0;
     int size = sizeof(int) + r;
@@ -286,7 +277,6 @@ return_type fsWrite(const int nparams, arg_type *a) {
     int count = *(int*)(a->next->next->arg_val);
     int *r = (int*)malloc(sizeof(int));
     *r = write(fd, buf,(size_t) count);
-
 
     ret.return_val = (void*)r;
     ret.return_size = sizeof(int);

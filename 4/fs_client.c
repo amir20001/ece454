@@ -50,6 +50,8 @@ int main(int argc, char *argv[]) {
     }
 
     char fname[256];
+    char buf[256];
+
     sprintf(fname, "%s/", dirname);
     if(read(ff, (void *)(fname+strlen(dirname)+1), 10) < 0) {
         perror("read(/dev/urandom)"); exit(1);
@@ -63,19 +65,14 @@ int main(int argc, char *argv[]) {
     fname[10+strlen(dirname)+1] = (char)0;
     printf("Filename to write: %s\n", (char *)fname);
 
-    char buf[256];
     if(read(ff, (void *)buf, 256) < 0) {
         perror("read(2)"); exit(1);
     }
-	
-	for(i = 0; i < 256; i++) {
-        buf[i] = ((unsigned char)(buf[i]))%26 + 'a';
-    }
 
-	printf("buf: %s\n", buf);
-    //printBuf(buf, 256);
+    printBuf(buf, 256);
 
     printf("close(/dev/urandom): %d\n", close(ff));
+    printf("Filename to write: %s\n", (char *)fname);
 
     ff = fsOpen(fname, 1);
     if(ff < 0) {
@@ -102,7 +99,7 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "fsRead() read fewer than 256\n");
     }
 	
-	printf("readbuf: %s\n", readbuf);
+	printBuf(readbuf, 256);
 
     if(memcmp(readbuf, buf, readcount)) {
         fprintf(stderr, "return buf from fsRead() differs from data written!\n");

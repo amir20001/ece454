@@ -90,7 +90,6 @@ int fsUnmount(const char *localFolderName) {
 FSDIR* fsOpenDir(const char *folderName) {
     return_type ret;
     char *path = str_replace(folderName, mountedDir, alias);
-    printf("path:%s\n", path);
     ret = make_remote_call(srvIp, port, 
 				"fsOpenDir", 1,
 				strlen(path)+1, (void*)(path)); 
@@ -99,10 +98,7 @@ FSDIR* fsOpenDir(const char *folderName) {
         errno = -1; //TODO: correct?
         return NULL;
     }
-    printf("opened id: %d\n", ret.return_val);
 	int val = *((int *)ret.return_val);
-	printf("opened value: %d\n", val);
-    //TODO: is this correct?
     return (FSDIR*)(ret.return_val);
 }
 
@@ -142,10 +138,11 @@ int fsCloseDir(FSDIR *folder) {
     return_type ret;
     ret = make_remote_call(srvIp, port, 
 				"fsCloseDir", 1,
-				sizeof(folder), (void*)(folder)); 
+				sizeof(FSDIR), (void*)(folder)); 
 
-    if (ret.return_val != 0) {
-        errno = *(int*)ret.return_val;
+    int r = *(int*)ret.return_val;
+    if (r != 0) {
+        errno = r;
         return -1;
     }
     return 0;
