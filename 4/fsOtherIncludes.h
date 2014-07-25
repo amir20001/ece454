@@ -12,5 +12,9 @@
 
 typedef int FSDIR;
 
+struct client {
+  char * ip;
+  unsigned short int port;
+};
 
 #endif
