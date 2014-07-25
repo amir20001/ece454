@@ -4,11 +4,15 @@
 #include <string.h>
 #include <dirent.h>
 
-typedef struct node {
+typedef struct _node {
 	int id;
 	DIR *dir;
-	struct node *next;
+	struct _node *next;
 } node;
+
+void print_q(node *n);
+node *find(node *n, int id);
+bool add_open_dir(DIR* dir, int id);
 
 void print_q(node *n) {
 	while (n != NULL) {

@@ -111,6 +111,12 @@ int main(int argc, char *argv[]) {
         perror("fsClose"); exit(1);
     }
 
+    fsOpen(fname, 0);
+    fsOpen(fname, 0);
+    ff = fsOpen(fname, 0);
+
+    fsClose(ff);
+
     printf("fsRemove(%s): %d\n", fname, fsRemove(fname));
 
     if(fsUnmount(dirname) < 0) {

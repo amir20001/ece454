@@ -11,14 +11,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+char *str_replace(const char *str, const char *substr, const char *rep);
+
 struct fsDirent dent;
 
 char *srvIp = NULL;
 int port = 0;
 char *alias = NULL;
 char *mountedDir = NULL;
-
-char *str_replace(const char *str, const char *substr, const char *rep);
 
 //relevant str_replace from http://coding.debuntu.org/c-implementing-str_replace-replace-all-occurrences-substring
 char * str_replace ( const char *string, const char *substr, const char *replacement ) {

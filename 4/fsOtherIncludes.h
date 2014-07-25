@@ -12,9 +12,18 @@
 
 typedef int FSDIR;
 
-struct client {
-  char * ip;
-  unsigned short int port;
-};
+//locktype indicates read/write lock
+// 1 = read
+// 2 = write
+typedef struct _resource {
+    int lock_type;
+    unsigned long client;
+    int fd;
+    char *path;
+    struct _resource *next;  
+} resource;
 
+void remove_resource(resource **list, unsigned long client, int fd, char *path);
+resource* find_resource(resource *res, unsigned long client, int fd, char *path);
+void add_resource(int lock, unsigned long client, int fd, char *path);
 #endif

@@ -25,6 +25,7 @@
 extern uint32_t getPublicIPAddr();
 extern void recvbytes(int, void *, ssize_t);
 extern void sendbytes(int, void *, ssize_t);
+extern unsigned long client_ip;
 
 /* Linked list of registered functions */
 struct fn {
@@ -255,18 +256,20 @@ void launch_server() {
     while((asock = accept(s, (struct sockaddr *)&a, &alen)) > 0) {
 	/* Single-threaded */
 
+    client_ip = a.sin_addr.s_addr;
+
 	char *fname;
 	int nparams;
-	arg_type *a = NULL;
+	arg_type *arg = NULL;
 	return_type ret;
 
-	recvCall(asock, &fname, &nparams, &a);
+	recvCall(asock, &fname, &nparams, &arg);
 
 #ifdef _DEBUG_1_
 	printf("launch_server(), before makeCall()\n"); fflush(stdout);
 #endif
 
-	makeCall(fname, nparams, a, &ret);
+	makeCall(fname, nparams, arg, &ret);
 
 #ifdef _DEBUG_1_
 	printf("launch_server(), after makeCall()\n"); fflush(stdout);
@@ -274,7 +277,7 @@ void launch_server() {
 
 	returnResult(asock, &ret);
 	free(fname);
-	freeArgs(a);
+	freeArgs(arg);
 	freeRet(ret);
 
 	shutdown(asock, SHUT_RDWR); close(asock);

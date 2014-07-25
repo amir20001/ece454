@@ -21,6 +21,9 @@ return_type ret;
 char *mountedDir = NULL;
 int open_dir_id = 1;
 node *open_dir_queue;
+resource *resource_list;
+
+unsigned long client_ip;
 
 return_type fsMount(const int nparams, arg_type *a);
 return_type fsUnmount(const int nparams, arg_type *a);
@@ -46,6 +49,60 @@ bool add_open_dir(DIR* dir, int id) {
 	cur_node->next = open_dir_queue;
 	open_dir_queue = cur_node;
 	return true;
+}
+
+resource* find_resource(resource *res, unsigned long client, int fd, char *path) {
+    resource *found = NULL;
+    while (res != NULL) {
+        if (path != NULL && strcmp(res->path, path) == 0 && res->client == client) {
+            found = res;
+            break;
+        } else if (fd != 0 && res->fd == fd && res->client == client) {
+            found = res;
+            break;
+        }
+        res = res->next;
+    }
+    return found;
+}
+
+void remove_resource(resource **list, unsigned long client, int fd, char *path) {
+    if(list == NULL) {
+        return;
+    }
+    resource *cur;
+    resource *prev = NULL;
+
+    for (cur = *list; cur != NULL; prev = cur, cur = cur->next) {
+
+        if ((path != NULL && strcmp(cur->path, path) == 0 && cur->client == client) || (fd != 0 && cur->fd == fd && cur->client == client)) {
+            if (prev == NULL) {
+                *list = cur->next;
+            } else {
+                prev->next = cur->next;
+            }
+
+            free(cur->path);
+            free(cur);
+            return;
+        }
+    }
+}
+
+void add_resource(int lock, unsigned long client, int fd, char *path) {
+    if (path == NULL) {
+        return;
+    }
+
+    resource *res = (resource *)malloc(sizeof(resource));
+    res->lock_type = lock;
+    res->client = client;
+    res->fd = fd;
+    res->path = (char *)malloc((size_t)(strlen(path)+1));
+    memcpy(res->path, path, (size_t)(strlen(path)+1));
+    res->next = resource_list;
+    resource_list = res;
+    return;
 }
 
 return_type fsMount(const int nparams, arg_type *a) {
@@ -78,6 +135,12 @@ return_type fsOpenDir(const int nparams, arg_type *a) {
 		return ret;
 	}
 	char *path = a->arg_val;
+    resource *res = find_resource(resource_list, client_ip, 0, path);
+    if(res != NULL && res->client != client_ip) {
+        ret.return_val =(void*) EAGAIN;
+        ret.return_size = sizeof(EAGAIN);
+    }
+
 	DIR* dir = opendir(path);
 
 	if (dir == NULL) {
@@ -89,6 +152,13 @@ return_type fsOpenDir(const int nparams, arg_type *a) {
 	add_open_dir(dir, open_dir_id);
 	int *pid = (int*)malloc(sizeof(int));
 	memcpy(pid, &open_dir_id, sizeof(int));
+
+    add_resource(1, client_ip, *pid, path);
+    //remove the old one,
+    if (res != NULL) {
+        remove_resource(&resource_list, client_ip, 0, path);
+    }
+
 	ret.return_val = pid;
 	//memcpy(ret.return_val,&open_dir_id, sizeof(int));
 	//ret.return_val = &open_dir_id;
@@ -141,6 +211,12 @@ return_type fsCloseDir(const int nparams, arg_type *a) {
     }
 
 	FSDIR *dir_id = malloc((size_t) a->arg_size);
+    resource *res = find_resource(resource_list, client_ip, *dir_id, NULL);
+    if(res != NULL && res->client != client_ip) {
+        ret.return_val =(void*) EAGAIN;
+        ret.return_size = sizeof(EAGAIN);
+    }
+
 	memcpy(dir_id, a->arg_val, (size_t) a->arg_size);
 	node* found=find(open_dir_queue,*dir_id);
 
@@ -150,6 +226,7 @@ return_type fsCloseDir(const int nparams, arg_type *a) {
         *r = errno;
     }
 
+    remove_resource(&resource_list, client_ip, *dir_id, NULL);
     free(dir_id);
     ret.return_val = (void*)r;
     ret.return_size = sizeof(int);
@@ -163,11 +240,18 @@ return_type fsRemove(const int nparams, arg_type *a) {
         return ret;
     }
     char *path = a->arg_val;
+    resource *res = find_resource(resource_list, client_ip, 0, path);
+    if(res != NULL && res->client != client_ip) {
+        ret.return_val =(void*) EAGAIN;
+        ret.return_size = sizeof(EAGAIN);
+    }
 
     int *r = (int*)malloc(sizeof(int));
     *r = remove(path);
 	ret.return_val = (void*)r;
 	ret.return_size = sizeof(int);
+
+    remove_resource(&resource_list, client_ip, 0, path);
 	return ret; 
 }
 
@@ -185,6 +269,12 @@ return_type fsOpen(const int nparams, arg_type *a) {
     }
 
     char *fname = (char*)(a->next->arg_val);
+    resource *res = find_resource(resource_list, client_ip, 0, fname);
+    if(res != NULL && res->client != client_ip) {
+        ret.return_val =(void*) EAGAIN;
+        ret.return_size = sizeof(EAGAIN);
+    }
+
     int flags = -1;
     int mode = *(int*)(a->arg_val);
     if (mode == 0) {
@@ -194,6 +284,13 @@ return_type fsOpen(const int nparams, arg_type *a) {
     }
     int *r = (int*)malloc(sizeof(int));
     *r = open(fname, flags, S_IRWXU);
+
+    add_resource(mode, client_ip, *r, fname);
+    //remove the old one,
+    if (res != NULL) {
+        remove_resource(&resource_list, client_ip, 0, fname);
+    }
+
     ret.return_val = (void*)r;
     ret.return_size = sizeof(int);
     return ret;
@@ -213,14 +310,19 @@ return_type fsClose(const int nparams, arg_type *a) {
     }
 
     int fd = *(int*)(a->arg_val);
+    resource *res = find_resource(resource_list, client_ip, fd, NULL);
+    if(res != NULL && res->client != client_ip) {
+        ret.return_val = (void*)EAGAIN;
+        ret.return_size = sizeof(EAGAIN);
+    }
+
     int *r = (int*)malloc(sizeof(int));
     *r = close(fd);
 
     ret.return_val = (void*)r;
     ret.return_size = sizeof(int);
 
-    //TODO
-    //is there a lock on this file? wat do
+    remove_resource(&resource_list, client_ip, fd, NULL);
 
     return ret;
 }
@@ -271,8 +373,15 @@ return_type fsWrite(const int nparams, arg_type *a) {
         return ret;
     }
 
-
     int fd = *(int*)(a->arg_val);
+
+    resource *res = find_resource(resource_list, client_ip, fd, NULL);
+    if(res != NULL && res->client != client_ip) {
+        ret.return_val = (void*)EAGAIN;
+        ret.return_size = sizeof(EAGAIN);
+    }
+
+
 	int count = *(int*)(a->next->arg_val);
     char *buf = (char*)(a->next->next->arg_val);
     
