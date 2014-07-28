@@ -49,10 +49,10 @@ int main(int argc, char *argv[]) {
         printf("open(/dev/urandom): %d\n", ff);
     }
 
-    char fname[256];
+    char fname[] = "test";
     char buf[256];
 
-    sprintf(fname, "%s/", dirname);
+ /*    sprintf(fname, "%s/", dirname);
     if(read(ff, (void *)(fname+strlen(dirname)+1), 10) < 0) {
         perror("read(/dev/urandom)"); exit(1);
     }
@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
         //printf("%d\n", ((unsigned char)(fname[i]))%26);
         fname[i+strlen(dirname)+1] = ((unsigned char)(fname[i+strlen(dirname)+1]))%26 + 'a';
     }
-    fname[10+strlen(dirname)+1] = (char)0;
+    fname[10+strlen(dirname)+1] = (char)0; */
     printf("Filename to write: %s\n", (char *)fname);
 
     if(read(ff, (void *)buf, 256) < 0) {
@@ -78,11 +78,11 @@ int main(int argc, char *argv[]) {
     if(ff < 0) {
         perror("fsOpen(write)"); exit(1);
     }
-
+	sleep(2000);
     if(fsWrite(ff, buf, 256) < 256) {
         fprintf(stderr, "fsWrite() wrote fewer than 256\n");
     }
-
+	sleep(3000);
     if(fsClose(ff) < 0) {
         perror("fsClose"); exit(1);
     }
