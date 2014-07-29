@@ -73,21 +73,21 @@ int main(int argc, char *argv[]) {
 
     printf("close(/dev/urandom): %d\n", close(ff));
     printf("Filename to write: %s\n", (char *)fname);
-
+	printf("open1\n");
     ff = fsOpen(fname, 1);
     if(ff < 0) {
         perror("fsOpen(write)"); exit(1);
     }
-	sleep(2000);
     if(fsWrite(ff, buf, 256) < 256) {
         fprintf(stderr, "fsWrite() wrote fewer than 256\n");
     }
-	sleep(3000);
+	sleep(10);
     if(fsClose(ff) < 0) {
         perror("fsClose"); exit(1);
     }
-
+	sleep(5);
     char readbuf[256];
+	printf("fsopen2\n");
     if((ff = fsOpen(fname, 0)) < 0) {
         perror("fsOpen(read)"); exit(1);
     }
@@ -110,9 +110,11 @@ int main(int argc, char *argv[]) {
     if(fsClose(ff) < 0) {
         perror("fsClose"); exit(1);
     }
-
+	printf("fsopen3\n");
     fsOpen(fname, 0);
+	printf("fsopen4\n");
     fsOpen(fname, 0);
+	printf("fsopen5\n");
     ff = fsOpen(fname, 0);
 
     fsClose(ff);

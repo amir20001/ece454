@@ -23,6 +23,11 @@ typedef struct _resource {
     struct _resource *next;  
 } resource;
 
+typedef struct {
+    int id;
+    char path[256];
+} FSMOUNT;
+
 void remove_resource(resource **list, unsigned long client, int fd, char *path);
 resource* find_resource(resource *res, unsigned long client, int fd, char *path);
 void add_resource(int lock, unsigned long client, int fd, char *path);

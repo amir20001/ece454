@@ -22,6 +22,7 @@ char *mountedDir = NULL;
 int open_dir_id = 1;
 node *open_dir_queue;
 resource *resource_list;
+int client_id=0;
 
 unsigned long client_ip;
 
@@ -72,7 +73,7 @@ void remove_resource(resource **list, unsigned long client, int fd, char *path) 
     }
     resource *cur;
     resource *prev = NULL;
-
+	printf("removing resource\n");
     for (cur = *list; cur != NULL; prev = cur, cur = cur->next) {
 
         if ((path != NULL && strcmp(cur->path, path) == 0 && cur->client == client) || (fd != 0 && cur->fd == fd && cur->client == client)) {
@@ -81,7 +82,7 @@ void remove_resource(resource **list, unsigned long client, int fd, char *path) 
             } else {
                 prev->next = cur->next;
             }
-
+			printf("found resource\n");
             free(cur->path);
             free(cur);
             return;
@@ -111,9 +112,13 @@ return_type fsMount(const int nparams, arg_type *a) {
         ret.return_size = 0;
         return ret;
     }
-    ret.return_val = malloc(strlen(mountedDir)+1);
-    memcpy(ret.return_val, mountedDir, strlen(mountedDir)+1);
-	ret.return_size = strlen(mountedDir)+1;
+	client_id++;
+	FSMOUNT *mount= malloc(sizeof(FSMOUNT));
+	mount->id=client_id;
+    ret.return_val = (void*)mount;
+	memset (mount->path,0,256);
+    memcpy(mount->path, mountedDir, strlen(mountedDir)+1);
+	ret.return_size = sizeof(FSMOUNT);
 	ret.is_error=0;
 	return ret; 
 }
@@ -317,8 +322,10 @@ return_type fsClose(const int nparams, arg_type *a) {
         ret.return_size = 0;
         return ret;
     }
+	printf("closing file\n");
 	ret.is_error=0;
     int fd = *(int*)(a->arg_val);
+	printf("file discriptor:%d\n",fd);
     resource *res = find_resource(resource_list, client_ip, fd, NULL);
     if(res != NULL && res->client != client_ip) {
         ret.return_val = (void*)EAGAIN;
