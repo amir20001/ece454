@@ -68,7 +68,6 @@ int fsMount(const char *srvIpOrDomName, const unsigned int srvPort, const char *
 	printf("my id: %d\n",mount->id);
 	id=mount->id;
     memcpy(alias, mount->path, 256);
-	printf("done setting alias \n");
     srvIp = srvIpOrDomName;
     port = srvPort;
     mountedDir = (char*)malloc(strlen(localFolderName)+1);
@@ -81,7 +80,8 @@ int fsUnmount(const char *localFolderName) {
     return_type ret;
 	printf("fsUnmount\n");
     ret = make_remote_call(srvIp, port, 
-				"fsUnmount", 1,
+				"fsUnmount", 2,
+				sizeof(int), (void*)(&id),
 				strlen(localFolderName)+1, (void*)(localFolderName)); 
 
     if (ret.return_val != 0) {
@@ -99,7 +99,8 @@ FSDIR* fsOpenDir(const char *folderName) {
 	do{
 	   printf("fsOpenDir\n");
 	   ret = make_remote_call(srvIp, port, 
-					"fsOpenDir", 1,
+					"fsOpenDir", 2,
+					sizeof(int), (void*)(&id),
 					strlen(path)+1, (void*)(path)); 
 		if(ret.is_error==1){
 			val = *((int *)ret.return_val);
@@ -120,7 +121,8 @@ struct fsDirent *fsReadDir(FSDIR *folder) {
     //int s = (sizeof(int) + sizeof(off_t) + (3*sizeof(size_t)) + sizeof(struct dirent));
 	printf("fsDirent\n");
     ret = make_remote_call(srvIp, port, 
-				"fsReadDir", 1,
+				"fsReadDir", 2,
+				sizeof(int), (void*)(&id),
 				sizeof(FSDIR), (void*)(folder)); 
     if (ret.return_val == 0) {
         return NULL;
@@ -153,7 +155,8 @@ int fsCloseDir(FSDIR *folder) {
 	do{
 		printf("fsCloseDIr\n");
 		ret = make_remote_call(srvIp, port, 
-					"fsCloseDir", 1,
+					"fsCloseDir", 2,
+					sizeof(int), (void*)(&id),
 					sizeof(FSDIR), (void*)(folder)); 
 
 		r = *(int*)ret.return_val;
@@ -174,7 +177,8 @@ int fsOpen(const char *fname, int mode) {
 	do{
 		printf("fsOpen\n");
 		ret = make_remote_call(srvIp, port, 
-					"fsOpen", 2,
+					"fsOpen", 3,
+					sizeof(int), (void*)(&id),
 					sizeof(int), (void*)(&mode),
 					strlen(path)+1, (void*)path); 
 				
@@ -194,7 +198,8 @@ int fsClose(int fd) {
 	do{
 		printf("fsClose\n");
 		ret = make_remote_call(srvIp, port, 
-					"fsClose", 1,
+					"fsClose", 2,
+					sizeof(int), (void*)(&id),
 					sizeof(int), (void*)(&fd)); 
 
 		r= *(int*)ret.return_val;
@@ -211,7 +216,8 @@ int fsRead(int fd, void *buf, const unsigned int count) {
     return_type ret;
 	printf("fsRead\n");
     ret = make_remote_call(srvIp, port, 
-				"fsRead", 3,
+				"fsRead", 4,
+				sizeof(int), (void*)(&id),
                 sizeof(int), (void*)(&fd),
 				strlen(buf)+1, buf,
                 sizeof(int), (void*)(&count)); 
@@ -235,7 +241,8 @@ int fsWrite(int fd, const void *buf, const unsigned int count) {
 	do{
 		printf("fsWrite\n");
 		ret = make_remote_call(srvIp, port, 
-					"fsWrite", 3,
+					"fsWrite", 4,
+					sizeof(int), (void*)(&id),
 					sizeof(int), (void*)(&fd),
 					sizeof(int), (void*)(&count),
 					count, buf); 
@@ -257,7 +264,8 @@ int fsRemove(const char *name) {
 	do{
 		printf("fsRemove\n");
 		ret = make_remote_call(srvIp, port, 
-					"fsRemove", 1,
+					"fsRemove", 2,
+					sizeof(int), (void*)(&id),
 					strlen(path)+1, (void*)(path)); 
 		val =*(int*)ret.return_val;	
 	} while(ret.is_error==1 && val == EAGAIN);

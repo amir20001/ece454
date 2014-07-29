@@ -124,7 +124,7 @@ return_type fsMount(const int nparams, arg_type *a) {
 }
 
 return_type fsUnmount(const int nparams, arg_type *a) {
-    if (nparams != 1) {
+    if (nparams != 2) {
         ret.return_val = NULL;
         ret.return_size = 0;
         return ret;
@@ -136,13 +136,13 @@ return_type fsUnmount(const int nparams, arg_type *a) {
 }
 
 return_type fsOpenDir(const int nparams, arg_type *a) {
-	if (nparams != 1) {
+	if (nparams != 2) {
 		ret.return_val = NULL;
 		ret.return_size = 0;
 		return ret;
 	}
 	ret.is_error=0;
-	char *path = a->arg_val;
+	char *path = a->next->arg_val;
     resource *res = find_resource(resource_list, client_ip, 0, path);
     if(res != NULL && res->client != client_ip) {
         ret.return_val =(void*) EAGAIN;
@@ -177,14 +177,14 @@ return_type fsOpenDir(const int nparams, arg_type *a) {
 
 return_type fsReadDir(const int nparams, arg_type *a) {
 
-	if (nparams != 1) {
+	if (nparams != 2) {
 		ret.return_val = NULL;
 		ret.return_size = 0;
 		return ret;
 	}
 	ret.is_error=0;
-	FSDIR *dir_id = malloc((size_t) a->arg_size);
-	memcpy(dir_id, a->arg_val, (size_t) a->arg_size);
+	FSDIR *dir_id = malloc((size_t) a->next->arg_size);
+	memcpy(dir_id, a->next->arg_val, (size_t) a->next->arg_size);
 	struct dirent *ent;
 	node* found=find(open_dir_queue,*dir_id);
 	int er = errno;
@@ -214,13 +214,13 @@ return_type fsReadDir(const int nparams, arg_type *a) {
 }
 
 return_type fsCloseDir(const int nparams, arg_type *a) {
-    if (nparams != 1) {
+    if (nparams != 2) {
         ret.return_val = NULL;
         ret.return_size = 0;
         return ret;
     }
 	ret.is_error=0;
-	FSDIR *dir_id = malloc((size_t) a->arg_size);
+	FSDIR *dir_id = malloc((size_t) a->next->arg_size);
     resource *res = find_resource(resource_list, client_ip, *dir_id, NULL);
     if(res != NULL && res->client != client_ip) {
         ret.return_val =(void*) EAGAIN;
@@ -228,7 +228,7 @@ return_type fsCloseDir(const int nparams, arg_type *a) {
 		ret.is_error=1;
     }
 
-	memcpy(dir_id, a->arg_val, (size_t) a->arg_size);
+	memcpy(dir_id, a->next->arg_val, (size_t) a->next->arg_size);
 	node* found=find(open_dir_queue,*dir_id);
 
     int *r = (int*)malloc(sizeof(int));
@@ -245,13 +245,13 @@ return_type fsCloseDir(const int nparams, arg_type *a) {
 }
 
 return_type fsRemove(const int nparams, arg_type *a) {
-    if (nparams != 1) {
+    if (nparams != 2) {
         ret.return_val = NULL;
         ret.return_size = 0;
         return ret;
     }
 	ret.is_error=0;
-    char *path = a->arg_val;
+    char *path = a->next->arg_val;
     resource *res = find_resource(resource_list, client_ip, 0, path);
     if(res != NULL && res->client != client_ip) {
         ret.return_val =(void*) EAGAIN;
@@ -269,19 +269,19 @@ return_type fsRemove(const int nparams, arg_type *a) {
 }
 
 return_type fsOpen(const int nparams, arg_type *a) {
-    if (nparams != 2) {
+    if (nparams != 3) {
         ret.return_val = NULL;
         ret.return_size = 0;
         return ret;
     }
 
-    if(a->arg_size != sizeof(int)) {
+    if(a->next->arg_size != sizeof(int)) {
         ret.return_val = NULL;
         ret.return_size = 0;
         return ret;
     }
 	ret.is_error=0;
-    char *fname = (char*)(a->next->arg_val);
+    char *fname = (char*)(a->next->next->arg_val);
     resource *res = find_resource(resource_list, client_ip, 0, fname);
     if(res != NULL && res->client != client_ip) {
         ret.return_val =(void*) EAGAIN;
@@ -290,7 +290,7 @@ return_type fsOpen(const int nparams, arg_type *a) {
     }
 
     int flags = -1;
-    int mode = *(int*)(a->arg_val);
+    int mode = *(int*)(a->next->arg_val);
     if (mode == 0) {
         flags = O_RDONLY;
     } else {
@@ -311,20 +311,20 @@ return_type fsOpen(const int nparams, arg_type *a) {
 }
 
 return_type fsClose(const int nparams, arg_type *a) {
-    if (nparams != 1) {
+    if (nparams != 2) {
         ret.return_val = NULL;
         ret.return_size = 0;
         return ret;
     }
 
-    if(a->arg_size != sizeof(int)) {
+    if(a->next->arg_size != sizeof(int)) {
         ret.return_val = NULL;
         ret.return_size = 0;
         return ret;
     }
 	printf("closing file\n");
 	ret.is_error=0;
-    int fd = *(int*)(a->arg_val);
+    int fd = *(int*)(a->next->arg_val);
 	printf("file discriptor:%d\n",fd);
     resource *res = find_resource(resource_list, client_ip, fd, NULL);
     if(res != NULL && res->client != client_ip) {
@@ -345,20 +345,20 @@ return_type fsClose(const int nparams, arg_type *a) {
 }
 
 return_type fsRead(const int nparams, arg_type *a) {
-    if (nparams != 3) {
+    if (nparams != 4) {
         ret.return_val = NULL;
         ret.return_size = 0;
         return ret;
     }
 
-    if(a->arg_size != sizeof(int) || a->next->next->arg_size != sizeof(int)) {
+    if(a->next->arg_size != sizeof(int) || a->next->next->next->arg_size != sizeof(int)) {
         ret.return_val = NULL;
         ret.return_size = 0;
         return ret;
     }
 	ret.is_error=0;
-    int fd = *(int*)(a->arg_val);
-    int count = *(int*)(a->next->next->arg_val);
+    int fd = *(int*)(a->next->arg_val);
+    int count = *(int*)(a->next->next->next->arg_val);
     char *buf = (char*)malloc((size_t)count);
     int r = read(fd, buf, (size_t)count);
 
@@ -378,19 +378,19 @@ return_type fsRead(const int nparams, arg_type *a) {
 }
 
 return_type fsWrite(const int nparams, arg_type *a) {
-    if (nparams != 3) {
+    if (nparams != 4) {
         ret.return_val = NULL;
         ret.return_size = 0;
         return ret;
     }
 
-    if(a->arg_size != sizeof(int) || a->next->arg_size != sizeof(int)) {
+    if(a->next->arg_size != sizeof(int) || a->next->next->arg_size != sizeof(int)) {
         ret.return_val = NULL;
         ret.return_size = 0;
         return ret;
     }
 	ret.is_error=0;
-    int fd = *(int*)(a->arg_val);
+    int fd = *(int*)(a->next->arg_val);
 
     resource *res = find_resource(resource_list, client_ip, fd, NULL);
     if(res != NULL && res->client != client_ip) {
@@ -400,8 +400,8 @@ return_type fsWrite(const int nparams, arg_type *a) {
     }
 
 
-	int count = *(int*)(a->next->arg_val);
-    char *buf = (char*)(a->next->next->arg_val);
+	int count = *(int*)(a->next->next->arg_val);
+    char *buf = (char*)(a->next->next->next->arg_val);
     
     int *r = (int*)malloc(sizeof(int));
 	printBuf(buf, 256);
@@ -437,17 +437,17 @@ int main(int argc, char *argv[]) {
         }
     }
 	register_procedure("fsMount", 1, fsMount);
-	register_procedure("fsUnmount", 1, fsUnmount);
+	register_procedure("fsUnmount", 2, fsUnmount);
 
-	register_procedure("fsOpenDir", 1, fsOpenDir);
-    register_procedure("fsReadDir", 1, fsReadDir);
-    register_procedure("fsCloseDir", 1, fsCloseDir);
+	register_procedure("fsOpenDir", 2, fsOpenDir);
+    register_procedure("fsReadDir", 2, fsReadDir);
+    register_procedure("fsCloseDir", 2, fsCloseDir);
 
-	register_procedure("fsOpen", 2, fsOpen);
-	register_procedure("fsRead", 3, fsRead);
-	register_procedure("fsWrite", 3, fsWrite);
-	register_procedure("fsClose", 1, fsClose);
-	register_procedure("fsRemove", 1, fsRemove);
+	register_procedure("fsOpen", 3, fsOpen);
+	register_procedure("fsRead", 4, fsRead);
+	register_procedure("fsWrite", 4, fsWrite);
+	register_procedure("fsClose", 2, fsClose);
+	register_procedure("fsRemove", 2, fsRemove);
 	launch_server();
 
 	return 0;
