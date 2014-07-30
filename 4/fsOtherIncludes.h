@@ -17,7 +17,7 @@ typedef int FSDIR;
 // 2 = write
 typedef struct _resource {
     int lock_type;
-    unsigned long client;
+    int id;
     int fd;
     char *path;
     struct _resource *next;  
@@ -28,7 +28,7 @@ typedef struct {
     char path[256];
 } FSMOUNT;
 
-void remove_resource(resource **list, unsigned long client, int fd, char *path);
-resource* find_resource(resource *res, unsigned long client, int fd, char *path);
-void add_resource(int lock, unsigned long client, int fd, char *path);
+void remove_resource(resource **list, int id, int fd, char *path);
+resource* find_resource(resource *res, int id, int fd, char *path);
+void add_resource(int lock, int id, int fd, char *path);
 #endif
