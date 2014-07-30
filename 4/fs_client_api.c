@@ -58,8 +58,8 @@ int fsMount(const char *srvIpOrDomName, const unsigned int srvPort, const char *
 				"fsMount", 1,
 				strlen(localFolderName)+1, (void*)(localFolderName)); 
 
-    if (ret.return_val == 0) {
-        errno = -1; //TODO: correct?
+    if (ret.return_val < 0) {
+        errno = -1;
         return -1;
     }
 
@@ -85,7 +85,7 @@ int fsUnmount(const char *localFolderName) {
 				strlen(localFolderName)+1, (void*)(localFolderName)); 
 
     if (ret.return_val != 0) {
-        errno = *(int*)ret.return_val;
+        errno = -1;
         return -1;
     }
 	printf("fsUnmount done\n");
@@ -159,9 +159,8 @@ int fsCloseDir(FSDIR *folder) {
 
 		r = *(int*)ret.return_val;
 	} while(r == -EAGAIN);
-    printf("fsCloseDIr done\n");
-	if (r != 0) {
-        errno = r;
+	if (r < 0) {
+        errno = -r;
         return -1;
     }
     return 0;
@@ -203,8 +202,8 @@ int fsClose(int fd) {
 		r= *(int*)ret.return_val;
 	}while(r == -EAGAIN);
 	printf("fsClose done\n");
-    if (r != 0) {
-        errno = r;
+    if (r < 0) {
+        errno = -r;
         return -1;
     }
     return 0;
@@ -227,7 +226,7 @@ int fsRead(int fd, void *buf, const unsigned int count) {
     memcpy(buf, ((char*)ret.return_val + sizeof(int)),(size_t)(ret.return_size - sizeof(int)));
 
     if (res == -1) {
-        errno = res; //TODO
+        errno = -res;
         return -1;
     }
     return res;
@@ -248,7 +247,7 @@ int fsWrite(int fd, const void *buf, const unsigned int count) {
 		res = *(int*)(ret.return_val); 
 	} while(res == -EAGAIN);
     if (res == -1) {
-        errno = 1; //TODO
+        errno = -res;
         return -1;
     }
     return res;
@@ -267,8 +266,8 @@ int fsRemove(const char *name) {
 					strlen(path)+1, (void*)(path)); 
 		val =*(int*)ret.return_val;	
 	} while(val == -EAGAIN);
-    if (*(int*)ret.return_val != 0) {
-        errno = *(int*)ret.return_val;
+    if (val < 0) {
+        errno = -val;
         return -1;
     }
     return 0;

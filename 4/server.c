@@ -254,8 +254,8 @@ return_type fsCloseDir(const int nparams, arg_type *a) {
 
     int *r = (int*)malloc(sizeof(int));
     *r = closedir(found->dir);
-    if (*r != 0) {
-        *r = errno;
+    if (*r == -1) {
+        *r = -errno;
     }
 
     remove_resource(&resource_list, id, *dir_id, NULL);
@@ -289,6 +289,9 @@ return_type fsRemove(const int nparams, arg_type *a) {
 
     int *r = (int*)malloc(sizeof(int));
     *r = remove(path);
+	if (*r == -1) {
+		*r = -errno;
+	}
 	ret.return_val = (void*)r;
 	ret.return_size = sizeof(int);
 
@@ -340,7 +343,6 @@ return_type fsOpen(const int nparams, arg_type *a) {
         remove_resource(&resource_list, id, 0, fname);
     }
 
-	printf("open returning: %d\n", *r);
 	if (*r == -1) {
 		*r = -errno;
 	}
@@ -382,6 +384,9 @@ return_type fsClose(const int nparams, arg_type *a) {
     int *r = (int*)malloc(sizeof(int));
     *r = close(fd);
 
+	if (*r == -1) {
+		*r = -errno;
+	}
     ret.return_val = (void*)r;
     ret.return_size = sizeof(int);
 
@@ -466,6 +471,9 @@ return_type fsWrite(const int nparams, arg_type *a) {
 	printBuf(buf, 256);
     *r = write(fd, buf,(size_t) count);
 
+	if (*r == -1) {
+		*r = -errno;
+	}
     ret.return_val = (void*)r;
     ret.return_size = sizeof(int);
 
