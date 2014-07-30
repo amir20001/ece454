@@ -19,29 +19,63 @@
 
 	\item  
 
+No, this doesn't appear to be the case.
+
 	\item  
+
+Sort of. For the read mentioned to work correctly, it needs to read a value from the last write set. This property doesn't explicitly state it must the newest, only the same from the read or newer. So the write follows read property seems to infer that you get some sort of monotonic read property. 
 
 	\item  
 
 	\begin{enumerate}
 
-		\item
+		\item 
+
+To find a global minimum, we check by brute force:
+
+For every server of every ordering:
+	open it and assign all clients to it
+	
+	pick another server from the ordered list, 
+		compute the cost for all clients to connect to this server
+		compare the cost of the clients current cost to their server to this new server
+		sum all the decreases in cost, and compare the sum to the cost to open this new server
+		if the saved cost sum is greater than the cost to open the server, open the server
+
+thus we have a time complexity of c*(f!), where we must iterate over every client for every ordering of all servers, assuming summation and comparisons are insignificant in time complexity
 
 		\item
+
+
 
 	\end{enumerate}
 
 	\item  
 
-	\item  
+need to check every set of k servers, that is, if there is no cost to open a server, you minimize the cost by picking k servers. but you have i servers, so then its "i choose k" possibilities, and you need to check all those. that seems really high and is not efficient (factorial is non polynomial time... so eh?)
 
 	\item  
 
 	\begin{enumerate}
 
-		\item
+		\item 
 
-		\item
+Never drop. Because we aren't given quantitative specs for space requirements, we will assume that the file size is negligible compared to the full size of the data store, and thus the file should always be replicated. we also aren't given specs on synchronization or how often we would update the file (and thus incur a cost of e to replicate the file).
+
+		\item 
+
+
+	\end{enumerate}
+
+	\item  
+
+	\begin{enumerate}
+
+		\item 
+Each write must utilise at least \( > \frac{N}{2}\) servers. We know thus that a majority of servers must have the most recent version of item x. To read, we need \( N_r + \frac{N}{2} > N \), which implies we must have some overlapping set of servers with respect to those that have the most recent version. ie, 10 servers, 6 must write, and we need x + 6 > 10, so we pick at least 5 servers, implying we have at least 1 with the new data.
+
+		\item 
+We have causal consistency across all the servers with respect to the data item x read/written into the system. However, on an individual server level we do not have causal consistency. We have have the case where data item x is written once to a majority of servers, and then for a long time only overwrites one of the servers across many more writes. These servers that are ignored do not demonstrate causal consistency as the data writes are sometimes missing from each server, and so the ordering can be different for all servers.
 
 	\end{enumerate}
 
