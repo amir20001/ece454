@@ -97,7 +97,6 @@ FSDIR* fsOpenDir(const char *folderName) {
     char *path = str_replace(folderName, mountedDir, alias);
 	int val;
 	do{
-	   printf("fsOpenDir\n");
 	   ret = make_remote_call(srvIp, port, 
 					"fsOpenDir", 2,
 					sizeof(int), (void*)(&id),
@@ -105,13 +104,12 @@ FSDIR* fsOpenDir(const char *folderName) {
 		if(ret.is_error==1){
 			val = *((int *)ret.return_val);
 		}		
-	} while(ret.is_error==1 && val == EAGAIN);
+	} while(val == -EAGAIN);
     if (ret.return_val == 0) {
         errno = -1; //TODO: correct?
         return NULL;
     }
 	val = *((int *)ret.return_val);
-	printf("fsOpenDir done\n");
     return (FSDIR*)(ret.return_val);
 }
 
@@ -160,7 +158,7 @@ int fsCloseDir(FSDIR *folder) {
 					sizeof(FSDIR), (void*)(folder)); 
 
 		r = *(int*)ret.return_val;
-	} while(ret.is_error==1 && r == EAGAIN);
+	} while(r == -EAGAIN);
     printf("fsCloseDIr done\n");
 	if (r != 0) {
         errno = r;
@@ -183,10 +181,10 @@ int fsOpen(const char *fname, int mode) {
 					strlen(path)+1, (void*)path); 
 				
 		fd = *(int*)(ret.return_val); 
-	}while(ret.is_error==1 && fd == EAGAIN);
+	}while(fd == -EAGAIN);
 	printf("fsOpen done\n");
-    if (fd == -1) {
-        errno = 1; //TODO
+    if (fd < 0) {
+        errno = -fd;
         return -1;
     }
     return fd;
@@ -203,7 +201,7 @@ int fsClose(int fd) {
 					sizeof(int), (void*)(&fd)); 
 
 		r= *(int*)ret.return_val;
-	}while(ret.is_error==1 && r == EAGAIN);
+	}while(r == -EAGAIN);
 	printf("fsClose done\n");
     if (r != 0) {
         errno = r;
@@ -248,7 +246,7 @@ int fsWrite(int fd, const void *buf, const unsigned int count) {
 					count, buf); 
 				
 		res = *(int*)(ret.return_val); 
-	} while(ret.is_error==1 && res == EAGAIN);
+	} while(res == -EAGAIN);
     if (res == -1) {
         errno = 1; //TODO
         return -1;
@@ -268,7 +266,7 @@ int fsRemove(const char *name) {
 					sizeof(int), (void*)(&id),
 					strlen(path)+1, (void*)(path)); 
 		val =*(int*)ret.return_val;	
-	} while(ret.is_error==1 && val == EAGAIN);
+	} while(val == -EAGAIN);
     if (*(int*)ret.return_val != 0) {
         errno = *(int*)ret.return_val;
         return -1;
