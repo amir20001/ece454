@@ -15,7 +15,7 @@ char *str_replace(const char *str, const char *substr, const char *rep);
 
 struct fsDirent dent;
 int id;
-char *srvIp = NULL;
+const char *srvIp;
 int port = 0;
 char alias[256];
 char *mountedDir = NULL;
@@ -39,10 +39,10 @@ char * str_replace ( const char *string, const char *substr, const char *replace
       free (oldstr);
       return NULL;
     }
-    memcpy ( newstr, oldstr, tok - oldstr );
-    memcpy ( newstr + (tok - oldstr), replacement, strlen ( replacement ) );
-    memcpy ( newstr + (tok - oldstr) + strlen( replacement ), tok + strlen ( substr ), strlen ( oldstr ) - strlen ( substr ) - ( tok - oldstr ) );
-    memset ( newstr + strlen ( oldstr ) - strlen ( substr ) + strlen ( replacement ) , 0, 1 );
+    memcpy ( newstr, oldstr,(size_t)( tok - oldstr ));
+    memcpy ( newstr + (tok - oldstr), replacement,(size_t)strlen ( replacement ) );
+    memcpy ( newstr + (tok - oldstr) + strlen( replacement ), tok + strlen ( substr ),(size_t) strlen ( oldstr ) - strlen ( substr ) - ( tok - oldstr ) );
+    memset ( newstr + strlen ( oldstr ) - strlen ( substr ) + strlen ( replacement ) , 0,(size_t) 1 );
     /* move back head right after the last replacement */
     head = newstr + (tok - oldstr) + strlen( replacement );
     free (oldstr);
@@ -66,8 +66,8 @@ int fsMount(const char *srvIpOrDomName, const unsigned int srvPort, const char *
 	FSMOUNT *mount= ( FSMOUNT*)malloc((size_t)ret.return_size);
 	memcpy(mount,ret.return_val,(size_t)ret.return_size);
 	printf("my id: %d\n",mount->id);
-	id=mount->id;
-    memcpy(alias, mount->path, 256);
+	id = mount->id;
+    memcpy(alias, mount->path,(size_t) 256);
     srvIp = srvIpOrDomName;
     port = srvPort;
     mountedDir = (char*)malloc(strlen(localFolderName)+1);
@@ -141,7 +141,7 @@ struct fsDirent *fsReadDir(FSDIR *folder) {
         dent.entType = -1;
     }
     
-    memcpy(&(dent.entName), &(d->d_name), 256);
+    memcpy(&(dent.entName), &(d->d_name),(size_t) 256);
 	free(d);
 	printf("fsDirent done\n");
     return &dent;
