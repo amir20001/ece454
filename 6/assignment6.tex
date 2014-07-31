@@ -19,12 +19,27 @@
 
 	\item  
 
-No, this doesn't appear to be the case.
+We are going to break this up in to three cases: alternating reads and writes, series of reads followed by a write and a series of writes followed by a read. We believe that any sequence can boiled down to some combination of these cases.
+
+Case 1: Alternating Reads and Writes
+\[ W(X1) \rightarrow R (X1) \rightarrow W(X2) \rightarrow R(X2) \rightarrow W(X3) \rightarrow R(X3) \]
+Since we are reading the value after every write, we know that the changes must have propagated due to read your write consistency. Therefor we know each write will be write on the most recent therefor write follow read will be true in this case. Therefor this case would infer write follow read.
+
+Case 2: Series of Reads Followed by Write
+\[ W(X1) \rightarrow R (X1) \rightarrow R (X1)\rightarrow R (X1) \rightarrow W(X2) \rightarrow R (X2)\rightarrow R (X2)\rightarrow R (X2)\]
+In this case the series of read are constantly reading the same value which causes no new propagation happens after the first read. Therefor it is trivial to reduce this case to case 1.
+
+Case 3: Series of Writes Followed by Read
+\[ W(X1) \rightarrow W (X2) \rightarrow W(X3)\rightarrow R (X3) \rightarrow W(X4) \rightarrow W (X5)\rightarrow W(X6)\rightarrow R (X6)\]
+Write follow read is only concerned with the first write after a read. We know from read your write that after doing a read the most recent write will be propagated therefore the first write after a read will write the most recent value. The writes after that may not propagate in order by nether read your write or read follow read is concerned about that. Therefor this case would infer write follow read.
+
+Based on these cases we believe that read your write would infer write follow read.
 
 	\item  
 
-Sort of. For the read mentioned to work correctly, it needs to read a value from the last write set. This property doesn't explicitly state it must the newest, only the same from the read or newer. So the write follows read property seems to infer that you get some sort of monotonic read property. 
-
+Proof by counter example.
+\[W(X1) \rightarrow R(X1) \rightarrow W(X2) \rightarrow W(X3) \rightarrow W(X4) \rightarrow R(X2|X3|X4) \]
+In the example above we know that W(X2), W(X3), W(X4) will all at least write on the value of X1 but we have no guarantee that tells which one will propagate last. There for we cannot guarantee that the next read will read X4 therefor it cannot infer read your writes.
 	\item  
 
 	\begin{enumerate}
@@ -63,7 +78,7 @@ need to check every set of k servers, that is, if there is no cost to open a ser
 Never drop. Because we aren't given quantitative specs for space requirements, we will assume that the file size is negligible compared to the full size of the data store, and thus the file should always be replicated. we also aren't given specs on synchronization or how often we would update the file (and thus incur a cost of e to replicate the file).
 
 		\item 
-
+To find an expression for replicate threshold we need to look at the difference in cost between q and p with respect to cost of replicating. Which leads us to get \(n_1+n_2>\frac{e}{q-p} \)
 
 	\end{enumerate}
 
