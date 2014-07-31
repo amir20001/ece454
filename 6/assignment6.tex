@@ -78,7 +78,7 @@ need to check every set of k servers, that is, if there is no cost to open a ser
 Never drop. Because we aren't given quantitative specs for space requirements, we will assume that the file size is negligible compared to the full size of the data store, and thus the file should always be replicated. we also aren't given specs on synchronization or how often we would update the file (and thus incur a cost of e to replicate the file).
 
 		\item 
-To find an expression for replicate threshold we need to look at the difference in cost between q and p with respect to cost of replicating. Which leads us to get \(n_1+n_2>\frac{e}{q-p} \)
+To find an expression for replicate threshold we need to look at the difference in cost between q and p with respect to cost of replicating. Which leads us to get \(n_1+n_2>\frac{e}{q-p} \).
 
 	\end{enumerate}
 
@@ -87,7 +87,7 @@ To find an expression for replicate threshold we need to look at the difference 
 	\begin{enumerate}
 
 		\item 
-Each write must utilise at least \( > \frac{N}{2}\) servers. We know thus that a majority of servers must have the most recent version of item x. To read, we need \( N_r + \frac{N}{2} > N \), which implies we must have some overlapping set of servers with respect to those that have the most recent version. ie, 10 servers, 6 must write, and we need x + 6 > 10, so we pick at least 5 servers, implying we have at least 1 with the new data.
+Each write must utilise at least \( > \frac{N}{2}\) servers. We know thus that a majority of servers must have the most recent version of item x. To read, we need \( N_r + \frac{N}{2} > N \), which implies we must have some overlapping set of servers with respect to those that have the most recent version. ie, 10 servers, 6 must write, and we need \(x + 6 > 10\), so we pick at least 5 servers, implying we have at least 1 with the new data.
 
 		\item 
 We have causal consistency across all the servers with respect to the data item x read/written into the system. However, on an individual server level we do not have causal consistency. We have have the case where data item x is written once to a majority of servers, and then for a long time only overwrites one of the servers across many more writes. These servers that are ignored do not demonstrate causal consistency as the data writes are sometimes missing from each server, and so the ordering can be different for all servers.
